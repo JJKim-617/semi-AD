@@ -11,13 +11,17 @@ import numpy as np
 from sklearn.metrics import confusion_matrix, f1_score, recall_score
 
 
-def evaluate(y_true: np.ndarray, y_pred: np.ndarray, num_classes: int) -> dict:
+def evaluate(y_true: np.ndarray, y_pred: np.ndarray, num_classes: int,
+             sample_weight: np.ndarray | None = None) -> dict:
     """분류 결과를 지표 묶음으로 만든다.
 
     Returns:
         accuracy, macro_f1, per_class_recall(클래스 인덱스 -> recall), per_class_f1, confusion.
         분할에 등장하지 않는 클래스도 키를 유지한다. 소수 클래스가 특정 분할에
         아예 없을 수 있어서다.
+
+        sample_weight 를 주면 표본별 가중치를 반영한다. 검증셋을 타겟 분포로 재가중해
+        "타겟 분포에서의 macro-F1" 을 근사할 때 쓴다.
     """
     y_true = np.asarray(y_true).ravel()
     y_pred = np.asarray(y_pred).ravel()
@@ -25,8 +29,14 @@ def evaluate(y_true: np.ndarray, y_pred: np.ndarray, num_classes: int) -> dict:
         raise ValueError(f"길이가 다르다: {y_true.shape} vs {y_pred.shape}")
 
     labels = list(range(num_classes))
-    recall = recall_score(y_true, y_pred, labels=labels, average=None, zero_division=0)
-    f1 = f1_score(y_true, y_pred, labels=labels, average=None, zero_division=0)
+    if sample_weight is not None:
+        sample_weight = np.asarray(sample_weight, dtype=np.float64).ravel()
+        if sample_weight.shape != y_true.shape:
+            raise ValueError(f"가중치 길이 {sample_weight.shape} 가 표본 수 {y_true.shape} 와 다르다")
+    recall = recall_score(y_true, y_pred, labels=labels, average=None, zero_division=0,
+                          sample_weight=sample_weight)
+    f1 = f1_score(y_true, y_pred, labels=labels, average=None, zero_division=0,
+                  sample_weight=sample_weight)
 
     # macro 는 실제 등장한 클래스에 대해서만 평균낸다. 없는 클래스의 0 이 섞이면
     # 분할마다 지표가 달라져 비교가 깨진다.
@@ -34,11 +44,12 @@ def evaluate(y_true: np.ndarray, y_pred: np.ndarray, num_classes: int) -> dict:
     macro_f1 = float(np.mean([f1[c] for c in present]))
 
     return {
-        "accuracy": float((y_true == y_pred).mean()),
+        "accuracy": float(np.average(y_true == y_pred, weights=sample_weight)),
         "macro_f1": macro_f1,
         "per_class_recall": {c: float(recall[c]) for c in labels},
         "per_class_f1": {c: float(f1[c]) for c in labels},
-        "confusion": confusion_matrix(y_true, y_pred, labels=labels).tolist(),
+        "confusion": confusion_matrix(y_true, y_pred, labels=labels,
+                                      sample_weight=sample_weight).tolist(),
         "support": {c: int((y_true == c).sum()) for c in labels},
     }
 

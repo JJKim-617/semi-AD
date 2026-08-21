@@ -28,6 +28,7 @@ def apply_offsets(logits: np.ndarray, offsets: np.ndarray) -> np.ndarray:
 def optimize_offsets(logits: np.ndarray, y: np.ndarray, num_classes: int,
                      rounds: int = 3, lo: float = -4.0, hi: float = 4.0,
                      steps: int = 33, metric: str = "macro_f1",
+                     sample_weight: np.ndarray | None = None,
                      verbose: bool = False) -> np.ndarray:
     """좌표 상승법. 0 벡터에서 시작해 한 클래스씩 최적 오프셋으로 갱신한다.
 
@@ -40,7 +41,8 @@ def optimize_offsets(logits: np.ndarray, y: np.ndarray, num_classes: int,
     grid = np.linspace(lo, hi, steps)
 
     def score(o):
-        return evaluate(y, apply_offsets(logits, o).argmax(1), num_classes)[metric]
+        return evaluate(y, apply_offsets(logits, o).argmax(1), num_classes,
+                        sample_weight=sample_weight)[metric]
 
     best = score(off)
     for r in range(rounds):

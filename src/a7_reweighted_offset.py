@@ -43,3 +43,68 @@ def importance_weights(y: np.ndarray, target_prior: np.ndarray,
     source = source / source.sum()
     w = np.asarray(target_prior, dtype=np.float64) / source
     return w[y]
+
+
+def main() -> None:
+    import argparse
+    import json
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from a4_eval_wm811k_cls import evaluate
+    from a6_perclass_offset import apply_offsets, cache_logits, optimize_offsets
+
+    p = argparse.ArgumentParser(description="타겟 재가중 오프셋 튜닝")
+    p.add_argument("--ckpt", required=True)
+    p.add_argument("--cache", default="data/wm811k/cache/wm811k_64.npz")
+    p.add_argument("--splits", default="data/wm811k/cache/splits_v1.npz")
+    p.add_argument("--out-dir", default="result/posthoc")
+    p.add_argument("--tag", default=None)
+    p.add_argument("--rounds", type=int, default=4)
+    a = p.parse_args()
+    tag = a.tag or Path(a.ckpt).stem
+
+    L = np.load(cache_logits(a.ckpt, a.cache, a.splits, a.out_dir, tag))
+    classes = [str(c) for c in np.load(a.cache)["classes"]]
+    n = len(classes)
+
+    # 타겟 사전확률을 라벨 없이 추정한다.
+    q = estimate_target_prior_cc(L["test_logits"], n)
+    w = importance_weights(L["val_y"], q, n)
+
+    base = evaluate(L["test_y"], L["test_logits"].argmax(1), n)
+    off_plain = optimize_offsets(L["val_logits"], L["val_y"], n, rounds=a.rounds)
+    off_rw = optimize_offsets(L["val_logits"], L["val_y"], n, rounds=a.rounds, sample_weight=w)
+
+    m_plain = evaluate(L["test_y"], apply_offsets(L["test_logits"], off_plain).argmax(1), n)
+    m_rw = evaluate(L["test_y"], apply_offsets(L["test_logits"], off_rw).argmax(1), n)
+
+    # 참고용: 실제 test 사전확률(라벨 사용). 추정이 얼마나 맞았는지 보기 위해서만 쓴다.
+    true_q = np.bincount(L["test_y"], minlength=n) / len(L["test_y"])
+
+    out = Path(a.out_dir); out.mkdir(parents=True, exist_ok=True)
+    (out / f"{tag}_reweighted.json").write_text(json.dumps({
+        "ckpt": a.ckpt, "classes": classes,
+        "target_prior_estimated_cc": q.tolist(),
+        "target_prior_true_for_reference": true_q.tolist(),
+        "offsets_plain_val": off_plain.tolist(),
+        "offsets_reweighted_val": off_rw.tolist(),
+        "test_macro_f1_base": base["macro_f1"], "test_accuracy_base": base["accuracy"],
+        "test_macro_f1_plain_val": m_plain["macro_f1"],
+        "test_macro_f1_reweighted": m_rw["macro_f1"],
+        "test_accuracy_reweighted": m_rw["accuracy"],
+        "test_per_class_f1_reweighted": m_rw["per_class_f1"],
+    }, indent=2), encoding="utf-8")
+
+    print(f"  타겟 사전확률 추정(CC) none={q[0]:.3f}  실제 none={true_q[0]:.3f}"
+          f"  (오차 {abs(q[0]-true_q[0]):.3f})")
+    print(f"  기준선            macro-F1 {base['macro_f1']:.4f}  acc {base['accuracy']:.4f}")
+    print(f"  val 오프셋        macro-F1 {m_plain['macro_f1']:.4f}"
+          f"   ({m_plain['macro_f1']-base['macro_f1']:+.4f})")
+    print(f"  재가중 오프셋     macro-F1 {m_rw['macro_f1']:.4f}  acc {m_rw['accuracy']:.4f}"
+          f"   ({m_rw['macro_f1']-base['macro_f1']:+.4f})")
+
+
+if __name__ == "__main__":
+    main()

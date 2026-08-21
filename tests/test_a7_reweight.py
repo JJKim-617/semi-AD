@@ -68,3 +68,59 @@ class TestWeights:
         y = np.array([0, 0, 1])
         w = importance_weights(y, np.array([0.3, 0.3, 0.4]), num_classes=3)
         assert np.isfinite(w).all()
+
+
+class TestWeightedEvaluation:
+    """가중 macro-F1. 재가중한 val 위에서 오프셋을 최적화하려면 지표도 가중돼야 한다."""
+
+    def test_uniform_weights_match_unweighted(self):
+        from a4_eval_wm811k_cls import evaluate
+        rng = np.random.default_rng(0)
+        y = rng.integers(0, 3, 50)
+        pred = rng.integers(0, 3, 50)
+        a = evaluate(y, pred, 3)
+        b = evaluate(y, pred, 3, sample_weight=np.ones(50))
+        assert b["macro_f1"] == pytest.approx(a["macro_f1"])
+
+    def test_weights_change_the_metric(self):
+        from a4_eval_wm811k_cls import evaluate
+        y = np.array([0, 0, 1, 1])
+        pred = np.array([0, 0, 1, 0])
+        w = np.array([1.0, 1.0, 1.0, 10.0])
+        assert evaluate(y, pred, 2, sample_weight=w)["macro_f1"] != pytest.approx(
+            evaluate(y, pred, 2)["macro_f1"])
+
+    def test_duplicating_a_sample_equals_doubling_its_weight(self):
+        """가중치의 의미가 표본 복제와 같아야 한다."""
+        from a4_eval_wm811k_cls import evaluate
+        y = np.array([0, 1, 1])
+        pred = np.array([0, 1, 0])
+        dup = evaluate(np.array([0, 1, 1, 1]), np.array([0, 1, 0, 0]), 2)
+        wt = evaluate(y, pred, 2, sample_weight=np.array([1.0, 1.0, 2.0]))
+        assert wt["macro_f1"] == pytest.approx(dup["macro_f1"])
+
+
+class TestWeightedOffsets:
+    def test_optimizer_accepts_weights_and_still_improves(self):
+        from a4_eval_wm811k_cls import evaluate
+        from a6_perclass_offset import apply_offsets, optimize_offsets
+        rng = np.random.default_rng(0)
+        y = np.where(rng.random(300) < 0.9, 0, 1)
+        z = np.zeros((300, 2)); z[:, 0] = 1.0
+        z[y == 1, 1] = 0.85; z[y == 0, 1] = 0.2
+        z += rng.normal(0, 0.05, z.shape)
+        w = importance_weights(y, np.array([0.5, 0.5]), 2)
+        base = evaluate(y, z.argmax(1), 2, sample_weight=w)["macro_f1"]
+        off = optimize_offsets(z, y, 2, sample_weight=w)
+        got = evaluate(y, apply_offsets(z, off).argmax(1), 2, sample_weight=w)["macro_f1"]
+        assert got >= base
+
+    def test_different_weights_give_different_offsets(self):
+        """재가중이 실제로 다른 경계를 만들어야 이 접근에 의미가 있다."""
+        from a6_perclass_offset import optimize_offsets
+        rng = np.random.default_rng(1)
+        y = np.where(rng.random(300) < 0.5, 0, 1)
+        z = rng.normal(size=(300, 2)); z[y == 1, 1] += 0.4
+        a = optimize_offsets(z, y, 2, sample_weight=importance_weights(y, np.array([0.95, 0.05]), 2))
+        b = optimize_offsets(z, y, 2, sample_weight=importance_weights(y, np.array([0.05, 0.95]), 2))
+        assert not np.array_equal(a, b)
