@@ -202,6 +202,8 @@ def main() -> None:
     p.add_argument("--grad-clip", type=float, default=None)
     p.add_argument("--cosine", action="store_true")
     p.add_argument("--warmup", type=int, default=0)
+    p.add_argument("--init-encoder", default=None,
+                   help="자기지도 사전학습 인코더 가중치. fc 는 제외하고 싣는다.")
     p.add_argument("--snapshot-every", type=int, default=0,
                    help="N 에폭마다 체크포인트를 남긴다. 0 이면 저장하지 않는다.")
     p.add_argument("--seed", type=int, default=0)
@@ -226,6 +228,13 @@ def main() -> None:
     print(f"[data] train {len(tr):,} | val {len(va):,} | classes {len(classes)} | {device}")
 
     model = build_model(num_classes=len(classes), pretrained=a.pretrained)
+    if a.init_encoder:
+        sd = torch.load(a.init_encoder, map_location="cpu", weights_only=True)
+        missing, unexpected = model.load_state_dict(sd, strict=False)
+        bad = [k for k in missing if not k.startswith("fc.")]
+        if bad:
+            raise RuntimeError(f"사전학습 인코더에 없는 키가 fc 외에 있다: {bad[:5]}")
+        print(f"[init] {a.init_encoder} 적재 (fc 는 새로 초기화)")
     opt = torch.optim.Adam(model.parameters(), lr=a.lr)
     w = class_weights(y[tr], len(classes)) if a.class_weight else None
     criterion = FocalLoss(gamma=a.gamma, alpha=w) if a.loss == "focal" else None

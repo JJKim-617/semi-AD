@@ -1,0 +1,13 @@
+# E12 — 자기지도 사전학습 인코더로 초기화. 나머지는 E8(pad, 0.7485)과 동일.
+cache: data/wm811k/cache/wm811k_64pad.npz
+tag: e12_ssl
+epochs: 40
+batch_size: 256
+lr: 0.001
+pretrained: false
+augment: true
+class_weight: false
+loss: ce
+cosine: true
+warmup: 3
+seed: 0
