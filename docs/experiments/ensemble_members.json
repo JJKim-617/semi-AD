@@ -75,5 +75,19 @@
     "cache": "data/wm811k/cache/wm811k_64polar.npz",
     "representation": "polar64",
     "architecture": "resnet18"
+  },
+  {
+    "tag": "e12_ssl_s0",
+    "ckpt": "result/cls_baseline/e12_ssl_s0_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "resnet18-ssl"
+  },
+  {
+    "tag": "e12_ssl_s1",
+    "ckpt": "result/cls_baseline/e12_ssl_s1_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "resnet18-ssl"
   }
 ]
