@@ -77,6 +77,9 @@ def cache_logits(ckpt: str, cache: str, splits: str, out_dir: str, tag: str) -> 
         return str(path)
     d, sp = np.load(cache), np.load(splits)
     n_cls = len(d["classes"])
+    # npz 는 지연 로딩이라 d["X"] 는 접근할 때마다 708MB 를 통째로 압축 해제한다.
+    # 배치 루프 안에서 읽으면 배치당 1.7초가 여기에만 쓰인다. 한 번만 읽는다.
+    X, y_all = d["X"], d["y"]
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model = build_model(num_classes=n_cls, pretrained=False)
     model.load_state_dict(torch.load(ckpt, map_location=device, weights_only=True))
@@ -89,9 +92,9 @@ def cache_logits(ckpt: str, cache: str, splits: str, out_dir: str, tag: str) -> 
             z = np.empty((len(idx), n_cls), dtype=np.float32)
             for i in range(0, len(idx), 512):
                 b = idx[i:i + 512]
-                z[i:i + len(b)] = model(to_onehot(d["X"][b]).to(device)).cpu().numpy()
+                z[i:i + len(b)] = model(to_onehot(X[b]).to(device)).cpu().numpy()
             store[f"{split}_logits"] = z
-            store[f"{split}_y"] = d["y"][idx].astype(np.int64)
+            store[f"{split}_y"] = y_all[idx].astype(np.int64)
     path.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(path, **store)
     return str(path)
