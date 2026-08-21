@@ -5,7 +5,7 @@
 # 측정돼 단일 실행 비교로는 부호조차 확정할 수 없다는 것이 확인됐다. 조건당 2 seed 로
 # 늘리고 평균과 범위를 함께 본다. 2 seed 로도 부족하지만 예산 안에서의 타협이다.
 source "$(dirname "$0")/_common.sh"
-while pgrep -f "run_e11.sh|mk_unlabeled_cache.sh" > /dev/null; do sleep 30; done
+while pgrep -f "run_e11.sh|run_e15.sh|mk_unlabeled_cache.sh" > /dev/null; do sleep 30; done
 ALL=data/wm811k/cache/wm811k_64pad_all.npz
 PAD=data/wm811k/cache/wm811k_64pad.npz
 [ -f "$ALL" ] || { echo "미라벨 캐시 없음: $ALL"; exit 1; }

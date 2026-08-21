@@ -61,14 +61,45 @@ def pad_center(wm: np.ndarray, size: int) -> np.ndarray:
     return out
 
 
+def polar_nn(wm: np.ndarray, size: int) -> np.ndarray:
+    """극좌표 재표본. 행 = 반지름(0 이 중심), 열 = 각도(0 ~ 2pi).
+
+    웨이퍼의 **회전이 열 방향 평행이동**이 되는 것이 요점이다. CNN 이 이미 가진
+    평행이동 등변성이 회전 등변성으로 바뀐다. Edge-Ring, Center, Donut 처럼
+    반지름으로 정의되는 결함은 행 방향 띠가 된다.
+
+    중심은 다이가 있는 셀의 무게중심으로 잡는다. 웨이퍼가 격자 정중앙에 있지
+    않은 경우가 있어 기하학적 중심보다 안정적이다. 여기서도 nearest 만 쓴다.
+    """
+    h, w = wm.shape
+    ys, xs = np.nonzero(wm > 0)
+    if len(ys) == 0:
+        return np.zeros((size, size), dtype=np.uint8)
+    cy, cx = ys.mean(), xs.mean()
+    radius = float(np.hypot(ys - cy, xs - cx).max())
+
+    r = (np.arange(size) + 0.5) * radius / size
+    th = (np.arange(size) + 0.5) * 2.0 * np.pi / size
+    yy = cy + r[:, None] * np.sin(th)[None, :]
+    xx = cx + r[:, None] * np.cos(th)[None, :]
+
+    yi = np.rint(yy).astype(np.int64)
+    xi = np.rint(xx).astype(np.int64)
+    inside = (yi >= 0) & (yi < h) & (xi >= 0) & (xi < w)
+
+    out = np.zeros((size, size), dtype=np.uint8)
+    out[inside] = wm[yi[inside], xi[inside]]
+    return out
+
+
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="WM-811K 전처리")
     p.add_argument("--config", type=Path, help="YAML 설정. CLI 인자가 우선한다.")
     p.add_argument("--src", type=Path, default=Path("data/wm811k/LSWMD.pkl"))
     p.add_argument("--out-dir", type=Path, default=Path("data/wm811k/cache"))
     p.add_argument("--size", type=int, default=64, help="정사각 리사이즈 크기 (기본 64)")
-    p.add_argument("--mode", choices=["resize", "pad"], default="resize",
-                   help="resize=nearest 보간, pad=중앙 배치 후 0 패딩")
+    p.add_argument("--mode", choices=["resize", "pad", "polar"], default="resize",
+                   help="resize=nearest 보간, pad=중앙 배치 후 0 패딩, polar=극좌표 재표본")
     p.add_argument("--labeled-only", action="store_true", default=True,
                    help="라벨된 172,950장만 저장 (기본)")
     p.add_argument("--include-unlabeled", dest="labeled_only", action="store_false",
@@ -118,7 +149,7 @@ def main() -> None:
     idx = np.flatnonzero(keep.to_numpy())
     print(f"[select] {len(idx):,} / {len(df):,} (labeled_only={args.labeled_only})")
 
-    fn = resize_nn if args.mode == "resize" else pad_center
+    fn = {"resize": resize_nn, "pad": pad_center, "polar": polar_nn}[args.mode]
     X = np.zeros((len(idx), args.size, args.size), dtype=np.uint8)
     for i, j in enumerate(idx):
         X[i] = fn(df["waferMap"].iat[j], args.size)

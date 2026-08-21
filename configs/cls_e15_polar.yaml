@@ -1,0 +1,16 @@
+# E15 — 극좌표 입력. E14 에서 앙상블 이득이 표현 다양성에 단조 증가하는 것이 확인됐고
+# (표현 1종 0.7420 < 2종 0.7641 < 3종 0.7732), 우리가 가진 표현 셋은 전부 직교 격자다.
+# 극좌표는 격자 자체가 달라 오류 패턴이 겹치지 않을 것으로 본다.
+# 나머지는 E8(pad)과 동일하게 두어 표현의 효과만 분리한다.
+cache: data/wm811k/cache/wm811k_64polar.npz
+tag: e15_polar
+epochs: 40
+batch_size: 256
+lr: 0.001
+pretrained: false
+augment: true
+class_weight: false
+loss: ce
+cosine: true
+warmup: 3
+seed: 0
