@@ -1,0 +1,11 @@
+# E5b — focal + alpha(역빈도). 두 기법을 겹쳤을 때 E4b 를 넘는지 본다.
+tag: e5_focal_a
+epochs: 15
+batch_size: 256
+lr: 0.001
+pretrained: false
+augment: true
+class_weight: true
+loss: focal
+gamma: 2.0
+seed: 0

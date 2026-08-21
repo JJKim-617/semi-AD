@@ -48,6 +48,34 @@ def build_model(num_classes: int = 9, pretrained: bool = False) -> nn.Module:
     return m
 
 
+class FocalLoss(nn.Module):
+    """Focal loss. 잘 맞춘 샘플의 기여를 (1-p)^gamma 로 줄인다.
+
+    역빈도 class weight 는 클래스 전체에 고정 배율을 걸어 극소수 클래스(Near-full 149장)에
+    큰 가중치가 항상 붙고, 그 결과 gradient 분산이 커져 학습이 불안정해졌다(E4 는 ep4 에서
+    accuracy 0.180 까지 붕괴). focal 은 배율이 샘플별이고 (1-p)^gamma 로 유계라 같은
+    불균형 문제를 다루면서 그 부작용이 작다. 이 데이터셋은 93% 가 none 이라 쉬운 샘플이
+    대부분이므로 눌러야 할 대상이 명확하다.
+
+    alpha 를 주면 클래스별 가중치를 추가로 건다(focal 논문의 alpha-balanced 변형).
+    """
+
+    def __init__(self, gamma: float = 2.0, alpha: torch.Tensor | None = None):
+        super().__init__()
+        if gamma < 0:
+            raise ValueError(f"gamma 는 0 이상이어야 한다: {gamma}")
+        self.gamma = float(gamma)
+        self.register_buffer("alpha", alpha if alpha is None else alpha.float())
+
+    def forward(self, logits: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        logp = nn.functional.log_softmax(logits, dim=1)
+        logp_t = logp.gather(1, target.unsqueeze(1)).squeeze(1)
+        loss = -((1.0 - logp_t.exp()) ** self.gamma) * logp_t
+        if self.alpha is not None:
+            loss = loss * self.alpha.to(logits.device)[target]
+        return loss.mean()
+
+
 def class_weights(y: np.ndarray, num_classes: int) -> torch.Tensor:
     """역빈도 가중치. 등장하지 않는 클래스는 가중치 0 으로 두어 inf 를 피한다."""
     counts = np.bincount(np.asarray(y).ravel(), minlength=num_classes).astype(np.float64)
@@ -78,11 +106,17 @@ def _batches(n: int, batch_size: int, shuffle: bool, rng=None):
 
 
 def train_one_epoch(model, X, y, optimizer, batch_size=256, device="cuda",
-                    weight=None, augment=False, rng=None) -> float:
-    """한 에폭 학습하고 평균 손실을 반환한다."""
+                    weight=None, augment=False, rng=None, criterion=None,
+                    grad_clip=None) -> float:
+    """한 에폭 학습하고 평균 손실을 반환한다.
+
+    criterion 을 주면 그것을 쓰고, 없으면 weight 를 반영한 CrossEntropy 를 쓴다.
+    grad_clip 을 주면 그 노름으로 gradient 를 자른다.
+    """
     model.to(device).train()
     rng = rng or np.random.default_rng(0)
-    crit = nn.CrossEntropyLoss(weight=None if weight is None else weight.to(device))
+    crit = criterion if criterion is not None else nn.CrossEntropyLoss(
+        weight=None if weight is None else weight.to(device))
     total, seen = 0.0, 0
     for b in _batches(len(X), batch_size, shuffle=True, rng=rng):
         xb = X[b]
@@ -93,6 +127,8 @@ def train_one_epoch(model, X, y, optimizer, batch_size=256, device="cuda",
         optimizer.zero_grad(set_to_none=True)
         loss = crit(model(inp), tgt)
         loss.backward()
+        if grad_clip is not None:
+            nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
         optimizer.step()
         total += loss.item() * len(b)
         seen += len(b)
@@ -130,6 +166,9 @@ def main() -> None:
     p.add_argument("--pretrained", action="store_true")
     p.add_argument("--augment", action="store_true")
     p.add_argument("--class-weight", action="store_true")
+    p.add_argument("--loss", default="ce", choices=["ce", "focal"])
+    p.add_argument("--gamma", type=float, default=2.0)
+    p.add_argument("--grad-clip", type=float, default=None)
     p.add_argument("--seed", type=int, default=0)
     a = p.parse_args()
 
@@ -154,6 +193,10 @@ def main() -> None:
     model = build_model(num_classes=len(classes), pretrained=a.pretrained)
     opt = torch.optim.Adam(model.parameters(), lr=a.lr)
     w = class_weights(y[tr], len(classes)) if a.class_weight else None
+    criterion = FocalLoss(gamma=a.gamma, alpha=w) if a.loss == "focal" else None
+    if criterion is not None:
+        criterion = criterion.to(device)
+        print(f"[loss] focal gamma={a.gamma} alpha={'class_weight' if w is not None else 'none'}")
 
     from a4_eval_wm811k_cls import evaluate
 
@@ -161,7 +204,8 @@ def main() -> None:
     out_dir = Path(a.out_dir); out_dir.mkdir(parents=True, exist_ok=True)
     for ep in range(1, a.epochs + 1):
         loss = train_one_epoch(model, X[tr], y[tr], opt, a.batch_size, device,
-                               weight=w, augment=a.augment, rng=rng)
+                               weight=w, augment=a.augment, rng=rng,
+                               criterion=criterion, grad_clip=a.grad_clip)
         m = evaluate(y[va], predict(model, X[va], a.batch_size * 2, device), len(classes))
         hist.append({"epoch": ep, "loss": loss, "val_macro_f1": m["macro_f1"],
                      "val_accuracy": m["accuracy"]})

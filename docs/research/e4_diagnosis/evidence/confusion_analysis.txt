@@ -1,0 +1,259 @@
+== E1 (e1_scratch_best_test.json) keys: ['accuracy', 'ckpt', 'confusion', 'macro_f1', 'n', 'per_class_f1', 'per_class_recall', 'split', 'support']
+   row_sums = [110701, 832, 146, 2772, 1126, 1973, 257, 693, 95]
+   recall(행 기준) = [0.9, 0.535, 0.336, 0.447, 0.412, 0.571, 0.599, 0.237, 0.863]
+   json recall     = [0.9, 0.535, 0.336, 0.447, 0.412, 0.571, 0.599, 0.237, 0.863]
+
+== E3 (e3_aug_best_test.json) keys: ['accuracy', 'ckpt', 'confusion', 'macro_f1', 'n', 'per_class_f1', 'per_class_recall', 'split', 'support']
+   row_sums = [110701, 832, 146, 2772, 1126, 1973, 257, 693, 95]
+   recall(행 기준) = [0.962, 0.612, 0.404, 0.587, 0.93, 0.51, 0.844, 0.439, 0.789]
+   json recall     = [0.962, 0.612, 0.404, 0.587, 0.93, 0.51, 0.844, 0.439, 0.789]
+
+== E4 (e4_cw_best_test.json) keys: ['accuracy', 'ckpt', 'confusion', 'macro_f1', 'n', 'per_class_f1', 'per_class_recall', 'split', 'support']
+   row_sums = [110701, 832, 146, 2772, 1126, 1973, 257, 693, 95]
+   recall(행 기준) = [0.974, 0.446, 0.514, 0.589, 0.665, 0.544, 0.572, 0.382, 0.989]
+   json recall     = [0.974, 0.446, 0.514, 0.589, 0.665, 0.544, 0.572, 0.382, 0.989]
+
+== E4b (e4_aug_cw_best_test.json) keys: ['accuracy', 'ckpt', 'confusion', 'macro_f1', 'n', 'per_class_f1', 'per_class_recall', 'split', 'support']
+   row_sums = [110701, 832, 146, 2772, 1126, 1973, 257, 693, 95]
+   recall(행 기준) = [0.976, 0.523, 0.507, 0.605, 0.733, 0.486, 0.747, 0.391, 0.968]
+   json recall     = [0.976, 0.523, 0.507, 0.605, 0.733, 0.486, 0.747, 0.391, 0.968]
+
+
+########## E1 — 혼동 행렬 (행=정답, 열=예측) ##########
+true\pred      none   Center    Donut Edge-Loc Edge-Rin      Loc   Random  Scratch Near-ful
+none          99674      620        1     1347       12     8319        6      722        0
+Center          306      445       10        5        0       65        0        1        0
+Donut            16        1       49        0        0       70        5        5        0
+Edge-Loc        997       14        2     1239       20      471       23        6        0
+Edge-Ring       399        3        0      248      464       11        0        1        0
+Loc             730       45        7       33        0     1127        5       26        0
+Random           51       10        8       11        0       21      154        0        2
+Scratch         329        5        1        4        1      189        0      164        0
+Near-full         0        0        0        3        0        0       10        0       82
+
+-- E1 행 정규화(%) --
+true\pred      none   Center    Donut Edge-Loc Edge-Rin      Loc   Random  Scratch Near-ful
+none           90.0      0.6      0.0      1.2      0.0      7.5      0.0      0.7      0.0
+Center         36.8     53.5      1.2      0.6      0.0      7.8      0.0      0.1      0.0
+Donut          11.0      0.7     33.6      0.0      0.0     47.9      3.4      3.4      0.0
+Edge-Loc       36.0      0.5      0.1     44.7      0.7     17.0      0.8      0.2      0.0
+Edge-Ring      35.4      0.3      0.0     22.0     41.2      1.0      0.0      0.1      0.0
+Loc            37.0      2.3      0.4      1.7      0.0     57.1      0.3      1.3      0.0
+Random         19.8      3.9      3.1      4.3      0.0      8.2     59.9      0.0      0.8
+Scratch        47.5      0.7      0.1      0.6      0.1     27.3      0.0     23.7      0.0
+Near-full       0.0      0.0      0.0      3.2      0.0      0.0     10.5      0.0     86.3
+
+-- E1 precision --
+   none       P=0.972  (예측 수 102,502)
+   Center     P=0.389  (예측 수 1,143)
+   Donut      P=0.628  (예측 수 78)
+   Edge-Loc   P=0.429  (예측 수 2,890)
+   Edge-Ring  P=0.934  (예측 수 497)
+   Loc        P=0.110  (예측 수 10,273)
+   Random     P=0.759  (예측 수 203)
+   Scratch    P=0.177  (예측 수 925)
+   Near-full  P=0.976  (예측 수 84)
+
+-- E1 결함 클래스 오류 분해 --
+class       support  errors  ->none    ->결함   none흡수율  주요 목적지
+Center          832     387     306      81     79.1%  none 306(37%), Loc 65(8%), Donut 10(1%), Edge-Loc 5(1%)
+Donut           146      97      16      81     16.5%  Loc 70(48%), none 16(11%), Random 5(3%), Scratch 5(3%)
+Edge-Loc       2772    1533     997     536     65.0%  none 997(36%), Loc 471(17%), Random 23(1%), Edge-Ring 20(1%)
+Edge-Ring      1126     662     399     263     60.3%  none 399(35%), Edge-Loc 248(22%), Loc 11(1%), Center 3(0%)
+Loc            1973     846     730     116     86.3%  none 730(37%), Center 45(2%), Edge-Loc 33(2%), Scratch 26(1%)
+Random          257     103      51      52     49.5%  none 51(20%), Loc 21(8%), Edge-Loc 11(4%), Center 10(4%)
+Scratch         693     529     329     200     62.2%  none 329(47%), Loc 189(27%), Center 5(1%), Edge-Loc 4(1%)
+Near-full        95      13       0      13      0.0%  Random 10(11%), Edge-Loc 3(3%)
+
+-- E1 none(110,701) 의 오탐 11,027 (9.96%) 목적지 --
+   Loc 8319, Edge-Loc 1347, Scratch 722, Center 620, Edge-Ring 12, Random 6, Donut 1, Near-full 0
+
+########## E3 — 혼동 행렬 (행=정답, 열=예측) ##########
+true\pred      none   Center    Donut Edge-Loc Edge-Rin      Loc   Random  Scratch Near-ful
+none         106539      304        9      987     2532      219       28       83        0
+Center          278      509        1        5       11       24        0        4        0
+Donut            13       30       59        1        2       30        9        2        0
+Edge-Loc        379        9        1     1627      560      132       52       11        1
+Edge-Ring        65        0        0       13     1047        0        1        0        0
+Loc             589      104       16      152       24     1006       13       69        0
+Random            8       13        3        6        0       10      217        0        0
+Scratch         278        1        4       11       10       84        1      304        0
+Near-full         0        0        0        2        0        0       18        0       75
+
+-- E3 행 정규화(%) --
+true\pred      none   Center    Donut Edge-Loc Edge-Rin      Loc   Random  Scratch Near-ful
+none           96.2      0.3      0.0      0.9      2.3      0.2      0.0      0.1      0.0
+Center         33.4     61.2      0.1      0.6      1.3      2.9      0.0      0.5      0.0
+Donut           8.9     20.5     40.4      0.7      1.4     20.5      6.2      1.4      0.0
+Edge-Loc       13.7      0.3      0.0     58.7     20.2      4.8      1.9      0.4      0.0
+Edge-Ring       5.8      0.0      0.0      1.2     93.0      0.0      0.1      0.0      0.0
+Loc            29.9      5.3      0.8      7.7      1.2     51.0      0.7      3.5      0.0
+Random          3.1      5.1      1.2      2.3      0.0      3.9     84.4      0.0      0.0
+Scratch        40.1      0.1      0.6      1.6      1.4     12.1      0.1     43.9      0.0
+Near-full       0.0      0.0      0.0      2.1      0.0      0.0     18.9      0.0     78.9
+
+-- E3 precision --
+   none       P=0.985  (예측 수 108,149)
+   Center     P=0.525  (예측 수 970)
+   Donut      P=0.634  (예측 수 93)
+   Edge-Loc   P=0.580  (예측 수 2,804)
+   Edge-Ring  P=0.250  (예측 수 4,186)
+   Loc        P=0.668  (예측 수 1,505)
+   Random     P=0.640  (예측 수 339)
+   Scratch    P=0.643  (예측 수 473)
+   Near-full  P=0.987  (예측 수 76)
+
+-- E3 결함 클래스 오류 분해 --
+class       support  errors  ->none    ->결함   none흡수율  주요 목적지
+Center          832     323     278      45     86.1%  none 278(33%), Loc 24(3%), Edge-Ring 11(1%), Edge-Loc 5(1%)
+Donut           146      87      13      74     14.9%  Center 30(21%), Loc 30(21%), none 13(9%), Random 9(6%)
+Edge-Loc       2772    1145     379     766     33.1%  Edge-Ring 560(20%), none 379(14%), Loc 132(5%), Random 52(2%)
+Edge-Ring      1126      79      65      14     82.3%  none 65(6%), Edge-Loc 13(1%), Random 1(0%)
+Loc            1973     967     589     378     60.9%  none 589(30%), Edge-Loc 152(8%), Center 104(5%), Scratch 69(3%)
+Random          257      40       8      32     20.0%  Center 13(5%), Loc 10(4%), none 8(3%), Edge-Loc 6(2%)
+Scratch         693     389     278     111     71.5%  none 278(40%), Loc 84(12%), Edge-Loc 11(2%), Edge-Ring 10(1%)
+Near-full        95      20       0      20      0.0%  Random 18(19%), Edge-Loc 2(2%)
+
+-- E3 none(110,701) 의 오탐 4,162 (3.76%) 목적지 --
+   Edge-Ring 2532, Edge-Loc 987, Center 304, Loc 219, Scratch 83, Random 28, Donut 9, Near-full 0
+
+########## E4 — 혼동 행렬 (행=정답, 열=예측) ##########
+true\pred      none   Center    Donut Edge-Loc Edge-Rin      Loc   Random  Scratch Near-ful
+none         107866      164        2      774       90     1110        2      693        0
+Center          303      371       24        6        1      114        1       11        1
+Donut            17        1       75        1        0       45        5        1        1
+Edge-Loc        791        6        2     1633       44      246       26       13       11
+Edge-Ring       200        0        0      175      749        1        0        1        0
+Loc             754       35       10       62        2     1073        4       32        1
+Random           58        8        3       13        0       11      147        0       17
+Scratch         312        1        4        7        1      103        0      265        0
+Near-full         0        0        0        0        0        0        1        0       94
+
+-- E4 행 정규화(%) --
+true\pred      none   Center    Donut Edge-Loc Edge-Rin      Loc   Random  Scratch Near-ful
+none           97.4      0.1      0.0      0.7      0.1      1.0      0.0      0.6      0.0
+Center         36.4     44.6      2.9      0.7      0.1     13.7      0.1      1.3      0.1
+Donut          11.6      0.7     51.4      0.7      0.0     30.8      3.4      0.7      0.7
+Edge-Loc       28.5      0.2      0.1     58.9      1.6      8.9      0.9      0.5      0.4
+Edge-Ring      17.8      0.0      0.0     15.5     66.5      0.1      0.0      0.1      0.0
+Loc            38.2      1.8      0.5      3.1      0.1     54.4      0.2      1.6      0.1
+Random         22.6      3.1      1.2      5.1      0.0      4.3     57.2      0.0      6.6
+Scratch        45.0      0.1      0.6      1.0      0.1     14.9      0.0     38.2      0.0
+Near-full       0.0      0.0      0.0      0.0      0.0      0.0      1.1      0.0     98.9
+
+-- E4 precision --
+   none       P=0.978  (예측 수 110,301)
+   Center     P=0.633  (예측 수 586)
+   Donut      P=0.625  (예측 수 120)
+   Edge-Loc   P=0.611  (예측 수 2,671)
+   Edge-Ring  P=0.844  (예측 수 887)
+   Loc        P=0.397  (예측 수 2,703)
+   Random     P=0.790  (예측 수 186)
+   Scratch    P=0.261  (예측 수 1,016)
+   Near-full  P=0.752  (예측 수 125)
+
+-- E4 결함 클래스 오류 분해 --
+class       support  errors  ->none    ->결함   none흡수율  주요 목적지
+Center          832     461     303     158     65.7%  none 303(36%), Loc 114(14%), Donut 24(3%), Scratch 11(1%)
+Donut           146      71      17      54     23.9%  Loc 45(31%), none 17(12%), Random 5(3%), Center 1(1%)
+Edge-Loc       2772    1139     791     348     69.4%  none 791(29%), Loc 246(9%), Edge-Ring 44(2%), Random 26(1%)
+Edge-Ring      1126     377     200     177     53.1%  none 200(18%), Edge-Loc 175(16%), Loc 1(0%), Scratch 1(0%)
+Loc            1973     900     754     146     83.8%  none 754(38%), Edge-Loc 62(3%), Center 35(2%), Scratch 32(2%)
+Random          257     110      58      52     52.7%  none 58(23%), Near-full 17(7%), Edge-Loc 13(5%), Loc 11(4%)
+Scratch         693     428     312     116     72.9%  none 312(45%), Loc 103(15%), Edge-Loc 7(1%), Donut 4(1%)
+Near-full        95       1       0       1      0.0%  Random 1(1%)
+
+-- E4 none(110,701) 의 오탐 2,835 (2.56%) 목적지 --
+   Loc 1110, Edge-Loc 774, Scratch 693, Center 164, Edge-Ring 90, Donut 2, Random 2, Near-full 0
+
+########## E4b — 혼동 행렬 (행=정답, 열=예측) ##########
+true\pred      none   Center    Donut Edge-Loc Edge-Rin      Loc   Random  Scratch Near-ful
+none         108070      454        3      871      108     1018       26      151        0
+Center          239      435       10       40        1       95        2        9        1
+Donut            10        3       74        3        0       42       11        3        0
+Edge-Loc        813       18        1     1676       63      148       30       19        4
+Edge-Ring       148        1        0      146      825        0        1        5        0
+Loc             631       59       15      220        0      959       10       79        0
+Random            6        1        7       20        0       17      192        0       14
+Scratch         300        2        1        9        1      109        0      271        0
+Near-full         0        0        0        0        0        0        3        0       92
+
+-- E4b 행 정규화(%) --
+true\pred      none   Center    Donut Edge-Loc Edge-Rin      Loc   Random  Scratch Near-ful
+none           97.6      0.4      0.0      0.8      0.1      0.9      0.0      0.1      0.0
+Center         28.7     52.3      1.2      4.8      0.1     11.4      0.2      1.1      0.1
+Donut           6.8      2.1     50.7      2.1      0.0     28.8      7.5      2.1      0.0
+Edge-Loc       29.3      0.6      0.0     60.5      2.3      5.3      1.1      0.7      0.1
+Edge-Ring      13.1      0.1      0.0     13.0     73.3      0.0      0.1      0.4      0.0
+Loc            32.0      3.0      0.8     11.2      0.0     48.6      0.5      4.0      0.0
+Random          2.3      0.4      2.7      7.8      0.0      6.6     74.7      0.0      5.4
+Scratch        43.3      0.3      0.1      1.3      0.1     15.7      0.0     39.1      0.0
+Near-full       0.0      0.0      0.0      0.0      0.0      0.0      3.2      0.0     96.8
+
+-- E4b precision --
+   none       P=0.981  (예측 수 110,217)
+   Center     P=0.447  (예측 수 973)
+   Donut      P=0.667  (예측 수 111)
+   Edge-Loc   P=0.561  (예측 수 2,985)
+   Edge-Ring  P=0.827  (예측 수 998)
+   Loc        P=0.402  (예측 수 2,388)
+   Random     P=0.698  (예측 수 275)
+   Scratch    P=0.505  (예측 수 537)
+   Near-full  P=0.829  (예측 수 111)
+
+-- E4b 결함 클래스 오류 분해 --
+class       support  errors  ->none    ->결함   none흡수율  주요 목적지
+Center          832     397     239     158     60.2%  none 239(29%), Loc 95(11%), Edge-Loc 40(5%), Donut 10(1%)
+Donut           146      72      10      62     13.9%  Loc 42(29%), Random 11(8%), none 10(7%), Center 3(2%)
+Edge-Loc       2772    1096     813     283     74.2%  none 813(29%), Loc 148(5%), Edge-Ring 63(2%), Random 30(1%)
+Edge-Ring      1126     301     148     153     49.2%  none 148(13%), Edge-Loc 146(13%), Scratch 5(0%), Center 1(0%)
+Loc            1973    1014     631     383     62.2%  none 631(32%), Edge-Loc 220(11%), Scratch 79(4%), Center 59(3%)
+Random          257      65       6      59      9.2%  Edge-Loc 20(8%), Loc 17(7%), Near-full 14(5%), Donut 7(3%)
+Scratch         693     422     300     122     71.1%  none 300(43%), Loc 109(16%), Edge-Loc 9(1%), Center 2(0%)
+Near-full        95       3       0       3      0.0%  Random 3(3%)
+
+-- E4b none(110,701) 의 오탐 2,631 (2.38%) 목적지 --
+   Loc 1018, Edge-Loc 871, Center 454, Scratch 151, Edge-Ring 108, Random 26, Donut 3, Near-full 0
+
+
+########## 실험 간 주요 셀 변화 ##########
+
+-- E1 -> E3 : 결함 행 델타 --
+   Loc        none -141, Loc -121, Edge-Loc +119, Center +59, Scratch +43, Edge-Ring +24, Donut +9, Random +8
+   Scratch    Scratch +140, Loc -105, none -51, Edge-Ring +9, Edge-Loc +7, Center -4, Donut +3, Random +1
+   Center     Center +64, Loc -41, none -28, Edge-Ring +11, Donut -9, Scratch +3
+   Edge-Ring  Edge-Ring +583, none -334, Edge-Loc -235, Loc -11, Center -3, Random +1, Scratch -1
+   Random     Random +63, none -43, Loc -11, Donut -5, Edge-Loc -5, Center +3, Near-full -2
+   Donut      Loc -40, Center +29, Donut +10, Random +4, none -3, Scratch -3, Edge-Ring +2, Edge-Loc +1
+
+-- E1 -> E4 : 결함 행 델타 --
+   Loc        Loc -54, Edge-Loc +29, none +24, Center -10, Scratch +6, Donut +3, Edge-Ring +2, Random -1, Near-full +1
+   Scratch    Scratch +101, Loc -86, none -17, Center -4, Donut +3, Edge-Loc +3
+   Center     Center -74, Loc +49, Donut +14, Scratch +10, none -3, Edge-Loc +1, Edge-Ring +1, Random +1, Near-full +1
+   Edge-Ring  Edge-Ring +285, none -199, Edge-Loc -73, Loc -10, Center -3
+   Random     Near-full +15, Loc -10, none +7, Random -7, Donut -5, Center -2, Edge-Loc +2
+   Donut      Donut +26, Loc -25, Scratch -4, none +1, Edge-Loc +1, Near-full +1
+
+-- E3 -> E4b : 결함 행 델타 --
+   Loc        Edge-Loc +68, Loc -47, Center -45, none +42, Edge-Ring -24, Scratch +10, Random -3, Donut -1
+   Scratch    Scratch -33, Loc +25, none +22, Edge-Ring -9, Donut -3, Edge-Loc -2, Center +1, Random -1
+   Center     Center -74, Loc +71, none -39, Edge-Loc +35, Edge-Ring -10, Donut +9, Scratch +5, Random +2, Near-full +1
+   Edge-Ring  Edge-Ring -222, Edge-Loc +133, none +83, Scratch +5, Center +1
+   Random     Random -25, Edge-Loc +14, Near-full +14, Center -12, Loc +7, Donut +4, none -2
+   Donut      Center -27, Donut +15, Loc +12, none -3, Edge-Loc +2, Edge-Ring -2, Random +2, Scratch +1
+
+-- E4 -> E4b : 결함 행 델타 --
+   Loc        Edge-Loc +158, none -123, Loc -114, Scratch +47, Center +24, Random +6, Donut +5, Edge-Ring -2, Near-full -1
+   Scratch    none -12, Loc +6, Scratch +6, Donut -3, Edge-Loc +2, Center +1
+   Center     none -64, Center +64, Edge-Loc +34, Loc -19, Donut -14, Scratch -2, Random +1
+   Edge-Ring  Edge-Ring +76, none -52, Edge-Loc -29, Scratch +4, Center +1, Loc -1, Random +1
+   Random     none -52, Random +45, Center -7, Edge-Loc +7, Loc +6, Donut +4, Near-full -3
+   Donut      none -7, Random +6, Loc -3, Center +2, Edge-Loc +2, Scratch +2, Donut -1, Near-full -1
+
+-- E1 -> E4b : 결함 행 델타 --
+   Loc        Edge-Loc +187, Loc -168, none -99, Scratch +53, Center +14, Donut +8, Random +5
+   Scratch    Scratch +107, Loc -80, none -29, Edge-Loc +5, Center -3
+   Center     none -67, Edge-Loc +35, Loc +30, Center -10, Scratch +8, Random +2, Edge-Ring +1, Near-full +1
+   Edge-Ring  Edge-Ring +361, none -251, Edge-Loc -102, Loc -11, Scratch +4, Center -2, Random +1
+   Random     none -45, Random +38, Near-full +12, Center -9, Edge-Loc +9, Loc -4, Donut -1
+   Donut      Loc -28, Donut +25, none -6, Random +6, Edge-Loc +3, Center +2, Scratch -2

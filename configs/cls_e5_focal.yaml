@@ -1,0 +1,11 @@
+# E5 — focal loss 단독(alpha 없음) + 증강. class weight 를 focal 로 대체했을 때의 효과.
+tag: e5_focal
+epochs: 15
+batch_size: 256
+lr: 0.001
+pretrained: false
+augment: true
+class_weight: false
+loss: focal
+gamma: 2.0
+seed: 0

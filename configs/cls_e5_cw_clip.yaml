@@ -1,0 +1,11 @@
+# E5c — E4b 와 동일하되 gradient clipping 만 추가. 불안정이 gradient 분산 탓인지 분리한다.
+tag: e5_cw_clip
+epochs: 15
+batch_size: 256
+lr: 0.001
+pretrained: false
+augment: true
+class_weight: true
+loss: ce
+grad_clip: 1.0
+seed: 0
