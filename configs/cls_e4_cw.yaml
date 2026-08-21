@@ -1,0 +1,9 @@
+# E4 — E1 + 역빈도 class weight. 증강 없이 불균형 처리만의 효과를 본다.
+tag: e4_cw
+epochs: 15
+batch_size: 256
+lr: 0.001
+pretrained: false
+augment: false
+class_weight: true
+seed: 0

@@ -61,3 +61,16 @@ lot 겹침은 train/val 0개, Training/Test 0개로 확인됐으므로 데이터
 3. Scratch(0.237), Donut(0.336), Edge-Ring(0.412) 이 우선 개선 대상이다.
 4. E5 에서 `--pretrained` 로 동일 조건 비교. 17만 장 규모라 이득이 크지 않을 것이라는
    가설을 검증한다.
+
+## E3, E4 증강과 불균형 처리 (2026-08-21)
+
+결과 요약은 [docs/reports/CLASSIFICATION.md](../reports/CLASSIFICATION.md) 에 유지한다.
+개별 실행 설정은 `configs/cls_e3_aug.yaml`, `cls_e4_cw.yaml`, `cls_e4_aug_cw.yaml`,
+결과는 `result/cls_baseline/` 에 json 과 md 로 있다.
+
+핵심만 적으면, test macro-F1 이 E1 0.5339 -> E3 0.6350 -> E4 0.6328 -> E4b **0.6545** 로 올랐고,
+증강과 class weight 는 각각 단독으로 +0.10 을 내지만 합쳐도 +0.12 라 효과가 겹친다.
+두 기법이 살리는 클래스가 다르다는 점(증강은 Edge-Ring, class weight 는 Near-full)이
+겹침 속에서도 조합이 최고인 이유다.
+
+val 이 두 번 방향을 잘못 알려준 것이 이 실험군의 가장 중요한 교훈이다. 상세는 리포트 참조.

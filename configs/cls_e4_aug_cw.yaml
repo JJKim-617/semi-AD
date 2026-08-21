@@ -1,0 +1,9 @@
+# E4b — 증강 + class weight 동시 적용.
+tag: e4_aug_cw
+epochs: 15
+batch_size: 256
+lr: 0.001
+pretrained: false
+augment: true
+class_weight: true
+seed: 0

@@ -1,0 +1,9 @@
+# E3 — E1 + dihedral 증강(90도 회전, 좌우 반전). 웨이퍼의 회전 대칭성을 이용한다.
+tag: e3_aug
+epochs: 15
+batch_size: 256
+lr: 0.001
+pretrained: false
+augment: true
+class_weight: false
+seed: 0
