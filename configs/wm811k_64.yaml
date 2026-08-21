@@ -1,0 +1,7 @@
+# WM-811K 전처리 — 문헌 표준 해상도
+src: data/wm811k/LSWMD.pkl
+out_dir: data/wm811k/cache
+size: 64
+mode: resize        # resize(nearest) | pad(중앙 배치)
+labeled_only: true
+tag: wm811k_64

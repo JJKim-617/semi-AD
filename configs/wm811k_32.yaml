@@ -1,0 +1,7 @@
+# WM-811K 전처리 — 경량. 원본 최빈 크기가 26x26 대라 손실이 작다.
+src: data/wm811k/LSWMD.pkl
+out_dir: data/wm811k/cache
+size: 32
+mode: resize
+labeled_only: true
+tag: wm811k_32

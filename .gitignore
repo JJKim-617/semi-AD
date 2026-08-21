@@ -1,0 +1,6 @@
+# 대용량은 HYDHC 심링크로 관리 — 저장소에 포함하지 않음
+data
+result
+__pycache__/
+*.pyc
+.pytest_cache/
