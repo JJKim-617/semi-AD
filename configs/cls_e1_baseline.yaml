@@ -1,0 +1,10 @@
+# E1 순수 베이스라인 — ResNet-18(stem 수정), one-hot 3채널, scratch.
+# 증강 없음, 불균형 처리 없음. 이후 단계의 비교 기준선.
+tag: e1_scratch
+epochs: 15
+batch_size: 256
+lr: 0.001
+pretrained: false
+augment: false
+class_weight: false
+seed: 0
