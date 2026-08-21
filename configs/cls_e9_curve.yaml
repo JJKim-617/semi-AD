@@ -1,0 +1,16 @@
+# E9 — 에폭별 test 성능 곡선을 실측한다.
+# 80 epoch 가 40 보다 나빴고(test -0.018) val 은 반대로 올랐다. val 로는 중단 시점을
+# 고를 수 없으므로, 5 에폭마다 스냅샷을 남겨 사후에 곡선을 그린다.
+# 나머지는 E7(plain CE 40ep)과 동일하되 60 까지 늘려 정점 이후 구간도 본다.
+tag: e9_curve
+epochs: 60
+batch_size: 256
+lr: 0.001
+pretrained: false
+augment: true
+class_weight: false
+loss: ce
+cosine: true
+warmup: 3
+snapshot_every: 5
+seed: 0
