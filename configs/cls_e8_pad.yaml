@@ -1,0 +1,16 @@
+# E8 — 입력 표현을 pad 로. 리사이즈는 웨이퍼의 물리적 크기 정보를 지운다.
+# 진단에서 Scratch 가 train median 52x52, test 31x31 로 같은 클래스가 픽셀 수준에서
+# 다른 그림이 되는 것이 확인됐다. pad 는 native 픽셀 스케일을 유지한 채 중앙 배치한다.
+# 나머지는 E7(plain CE, 40ep, cosine)과 동일하게 두어 표현의 효과만 분리한다.
+cache: data/wm811k/cache/wm811k_64pad.npz
+tag: e8_pad
+epochs: 40
+batch_size: 256
+lr: 0.001
+pretrained: false
+augment: true
+class_weight: false
+loss: ce
+cosine: true
+warmup: 3
+seed: 0

@@ -1,0 +1,14 @@
+# E8b — 해상도 96. 원본 최빈 크기가 26x26 대라 64 도 업샘플이지만, 큰 웨이퍼(최대 200x200)의
+# 다운샘플 손실을 줄인다. 나머지는 E7 과 동일.
+cache: data/wm811k/cache/wm811k_96.npz
+tag: e8_res96
+epochs: 40
+batch_size: 256
+lr: 0.001
+pretrained: false
+augment: true
+class_weight: false
+loss: ce
+cosine: true
+warmup: 3
+seed: 0
