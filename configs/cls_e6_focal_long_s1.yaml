@@ -1,0 +1,14 @@
+# E6b — E6 와 동일, seed 만 다르다. val 진동 +-0.2 이므로 run-to-run 분산을 측정해야
+# 실험 간 0.02 차이가 유의한지 판단할 수 있다.
+tag: e6_focal_long_s1
+epochs: 40
+batch_size: 256
+lr: 0.001
+pretrained: false
+augment: true
+class_weight: false
+loss: focal
+gamma: 2.0
+cosine: true
+warmup: 3
+seed: 1

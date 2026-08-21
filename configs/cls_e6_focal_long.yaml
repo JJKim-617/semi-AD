@@ -1,0 +1,13 @@
+# E6 — E5(focal+증강) 를 40 epoch + cosine + warmup 으로. 15 epoch 미수렴이 진단됐다.
+tag: e6_focal_long
+epochs: 40
+batch_size: 256
+lr: 0.001
+pretrained: false
+augment: true
+class_weight: false
+loss: focal
+gamma: 2.0
+cosine: true
+warmup: 3
+seed: 0

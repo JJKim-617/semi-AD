@@ -1,0 +1,15 @@
+# E7 — 문헌 권고 대조군. focal 을 빼고 평범한 CE 로 수렴까지.
+# 근거: 불균형 기법을 의도적으로 안 쓴 논문이 9-class WM-811K 에서 macro-F1 0.9098 을
+# 보고했다(단 자체 랜덤 분할이라 우리 공식 split 과 직접 비교는 불가).
+# 우리 2,520 step 은 레퍼런스의 약 15% 로 미수렴이다. 손실 설계보다 수렴이 먼저다.
+tag: e7_ce_long
+epochs: 40
+batch_size: 256
+lr: 0.001
+pretrained: false
+augment: true
+class_weight: false
+loss: ce
+cosine: true
+warmup: 3
+seed: 0

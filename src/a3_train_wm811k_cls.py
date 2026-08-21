@@ -16,6 +16,8 @@
 
 from __future__ import annotations
 
+import math
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -74,6 +76,21 @@ class FocalLoss(nn.Module):
         if self.alpha is not None:
             loss = loss * self.alpha.to(logits.device)[target]
         return loss.mean()
+
+
+def cosine_lr(epoch: int, total: int, base: float, warmup: int = 0) -> float:
+    """warmup 후 코사인 감쇠. epoch 은 0부터 total 까지.
+
+    15 epoch 고정 lr 에서 loss 가 계속 내려가는 중이었다(미수렴). 길게 학습하되
+    후반에 lr 을 낮춰 진동을 줄인다. warmup 은 초기 gradient 스파이크 구간을 완만하게 만든다.
+    """
+    if total <= 0:
+        raise ValueError(f"total 은 1 이상이어야 한다: {total}")
+    if warmup and epoch < warmup:
+        return base * (epoch + 1) / (warmup + 1)
+    e = epoch - warmup
+    t = max(total - warmup, 1)
+    return base * 0.5 * (1.0 + math.cos(math.pi * min(e, t) / t))
 
 
 def class_weights(y: np.ndarray, num_classes: int) -> torch.Tensor:
@@ -169,6 +186,8 @@ def main() -> None:
     p.add_argument("--loss", default="ce", choices=["ce", "focal"])
     p.add_argument("--gamma", type=float, default=2.0)
     p.add_argument("--grad-clip", type=float, default=None)
+    p.add_argument("--cosine", action="store_true")
+    p.add_argument("--warmup", type=int, default=0)
     p.add_argument("--seed", type=int, default=0)
     a = p.parse_args()
 
@@ -203,6 +222,10 @@ def main() -> None:
     hist, best, t0 = [], -1.0, time.time()
     out_dir = Path(a.out_dir); out_dir.mkdir(parents=True, exist_ok=True)
     for ep in range(1, a.epochs + 1):
+        if a.cosine:
+            lr_now = cosine_lr(ep - 1, a.epochs, a.lr, a.warmup)
+            for g in opt.param_groups:
+                g["lr"] = lr_now
         loss = train_one_epoch(model, X[tr], y[tr], opt, a.batch_size, device,
                                weight=w, augment=a.augment, rng=rng,
                                criterion=criterion, grad_clip=a.grad_clip)

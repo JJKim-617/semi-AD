@@ -1,0 +1,12 @@
+# E7b — 40 epoch 도 부족한지 확인. 80 epoch.
+tag: e7_ce_long80
+epochs: 80
+batch_size: 256
+lr: 0.001
+pretrained: false
+augment: true
+class_weight: false
+loss: ce
+cosine: true
+warmup: 3
+seed: 0
