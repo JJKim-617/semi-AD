@@ -128,6 +128,36 @@ def dihedral(x: np.ndarray, k: int, flip: bool) -> np.ndarray:
     return np.ascontiguousarray(out)
 
 
+def angular_augment(x: np.ndarray, shift: int, flip: bool) -> np.ndarray:
+    """극좌표용 증강. 행은 반지름, 열은 각도다.
+
+    극좌표에서 유효한 대칭은 둘뿐이다. 웨이퍼의 회전은 **각도 축의 순환이동**이고
+    반사는 **각도 축의 뒤집기**다. 반지름 축은 절대 뒤집지 않는다 — 중심과 가장자리가
+    뒤바뀐다. dihedral 의 rot90 은 두 축을 맞바꾸므로 여기서 쓰면 안 된다.
+    """
+    out = np.roll(x, shift, axis=-1)
+    if flip:
+        out = np.flip(out, axis=-1)
+    return np.ascontiguousarray(out)
+
+
+def augment_batch(x: np.ndarray, mode: str, rng) -> np.ndarray:
+    """입력 표현에 맞는 증강을 고른다.
+
+    `dihedral` 은 카르테시안(pad, resize)용, `angular` 는 극좌표용이다.
+    표현과 증강이 어긋나면 학습이 망가진다 — E15 에서 극좌표에 dihedral 을 걸었더니
+    test macro-F1 이 0.5206 까지 떨어졌다.
+    """
+    if mode == "none":
+        return x
+    if mode == "dihedral":
+        return dihedral(x, k=int(rng.integers(4)), flip=bool(rng.integers(2)))
+    if mode == "angular":
+        return angular_augment(x, shift=int(rng.integers(x.shape[-1])),
+                               flip=bool(rng.integers(2)))
+    raise ValueError(f"모르는 증강 방식: {mode}")
+
+
 def _batches(n: int, batch_size: int, shuffle: bool, rng=None):
     idx = np.arange(n)
     if shuffle:
@@ -152,7 +182,7 @@ def train_one_epoch(model, X, y, optimizer, batch_size=256, device="cuda",
     for b in _batches(len(X), batch_size, shuffle=True, rng=rng):
         xb = X[b]
         if augment:
-            xb = dihedral(xb, k=int(rng.integers(4)), flip=bool(rng.integers(2)))
+            xb = augment_batch(xb, "dihedral" if augment is True else augment, rng)
         inp = to_onehot(xb).to(device)
         tgt = torch.as_tensor(y[b], dtype=torch.long, device=device)
         optimizer.zero_grad(set_to_none=True)
@@ -196,6 +226,9 @@ def main() -> None:
     p.add_argument("--lr", type=float, default=1e-3)
     p.add_argument("--pretrained", action="store_true")
     p.add_argument("--augment", action="store_true")
+    p.add_argument("--augment-mode", choices=["dihedral", "angular"], default="dihedral",
+                   help="dihedral=카르테시안(pad, resize)용, angular=극좌표용. "
+                        "표현과 어긋나면 학습이 망가진다.")
     p.add_argument("--class-weight", action="store_true")
     p.add_argument("--loss", default="ce", choices=["ce", "focal"])
     p.add_argument("--gamma", type=float, default=2.0)
@@ -252,7 +285,7 @@ def main() -> None:
             for g in opt.param_groups:
                 g["lr"] = lr_now
         loss = train_one_epoch(model, X[tr], y[tr], opt, a.batch_size, device,
-                               weight=w, augment=a.augment, rng=rng,
+                               weight=w, augment=(a.augment_mode if a.augment else False), rng=rng,
                                criterion=criterion, grad_clip=a.grad_clip)
         m = evaluate(y[va], predict(model, X[va], a.batch_size * 2, device), len(classes))
         hist.append({"epoch": ep, "loss": loss, "val_macro_f1": m["macro_f1"],
