@@ -103,5 +103,85 @@
     "cache": "data/wm811k/cache/wm811k_64pad.npz",
     "representation": "pad64",
     "architecture": "resnet18-ssl-lab"
+  },
+  {
+    "tag": "e17_translate_s0",
+    "ckpt": "result/cls_baseline/e17_translate_s0_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "resnet18",
+    "augment": "translate"
+  },
+  {
+    "tag": "e17_translate_s1",
+    "ckpt": "result/cls_baseline/e17_translate_s1_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "resnet18",
+    "augment": "translate"
+  },
+  {
+    "tag": "e17_scale_s0",
+    "ckpt": "result/cls_baseline/e17_scale_s0_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "resnet18",
+    "augment": "scale"
+  },
+  {
+    "tag": "e17_scale_s1",
+    "ckpt": "result/cls_baseline/e17_scale_s1_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "resnet18",
+    "augment": "scale"
+  },
+  {
+    "tag": "e17_dropout_s0",
+    "ckpt": "result/cls_baseline/e17_dropout_s0_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "resnet18",
+    "augment": "dropout"
+  },
+  {
+    "tag": "e17_dropout_s1",
+    "ckpt": "result/cls_baseline/e17_dropout_s1_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "resnet18",
+    "augment": "dropout"
+  },
+  {
+    "tag": "e17_all_s0",
+    "ckpt": "result/cls_baseline/e17_all_s0_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "resnet18",
+    "augment": "all"
+  },
+  {
+    "tag": "e17_all_s1",
+    "ckpt": "result/cls_baseline/e17_all_s1_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "resnet18",
+    "augment": "all"
+  },
+  {
+    "tag": "e17_noise_s0",
+    "ckpt": "result/cls_baseline/e17_noise_s0_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "resnet18",
+    "augment": "noise"
+  },
+  {
+    "tag": "e17_noise_s1",
+    "ckpt": "result/cls_baseline/e17_noise_s1_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "resnet18",
+    "augment": "noise"
   }
 ]
