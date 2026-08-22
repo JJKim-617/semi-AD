@@ -36,12 +36,30 @@ def to_onehot(x: np.ndarray) -> torch.Tensor:
     return nn.functional.one_hot(t, NUM_CATEGORIES).permute(0, 3, 1, 2).float()
 
 
-def build_model(num_classes: int = 9, pretrained: bool = False) -> nn.Module:
-    """저해상도용으로 stem 을 고친 ResNet-18.
+def build_model(num_classes: int = 9, pretrained: bool = False,
+                backbone: str = "resnet18") -> nn.Module:
+    """저해상도용으로 stem 을 고친 분류기.
+
+    기본은 ResNet-18 이다. 기존 체크포인트가 전부 그것이고 호출부 여섯 곳이
+    인자 없이 부르므로 **기본값을 바꾸면 과거 결과를 되읽을 수 없다.**
 
     pretrained=True 면 layer1~4 는 ImageNet 가중치를 쓰고 stem 만 새로 초기화된다.
     stem 은 커널 형상이 달라 사전학습 가중치를 이어받을 수 없다.
+    사전학습은 resnet18 에서만 지원한다 — 입력이 3채널 one-hot 명목형이라
+    다른 백본까지 열어둘 근거가 없다.
+
+    다른 백본은 `a19_backbones` 가 만든다. 전부 stem 을 고쳐 64x64 가
+    붕괴하지 않게 돼 있다(최종 feature map 4x4~8x8).
     """
+    if backbone != "resnet18":
+        if pretrained:
+            raise ValueError(f"{backbone} 는 사전학습을 지원하지 않는다")
+        import sys
+        from pathlib import Path
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from a19_backbones import build_backbone
+        return build_backbone(backbone, num_classes=num_classes)
+
     weights = tvm.ResNet18_Weights.IMAGENET1K_V1 if pretrained else None
     m = tvm.resnet18(weights=weights)
     m.conv1 = nn.Conv2d(NUM_CATEGORIES, 64, kernel_size=3, stride=1, padding=1, bias=False)
@@ -180,7 +198,7 @@ def _batches(n: int, batch_size: int, shuffle: bool, rng=None):
 
 def train_one_epoch(model, X, y, optimizer, batch_size=256, device="cuda",
                     weight=None, augment=False, extra_augment=(), rng=None, criterion=None,
-                    grad_clip=None) -> float:
+                    grad_clip=None, ema=None) -> float:
     """한 에폭 학습하고 평균 손실을 반환한다.
 
     criterion 을 주면 그것을 쓰고, 없으면 weight 를 반영한 CrossEntropy 를 쓴다.
@@ -204,6 +222,8 @@ def train_one_epoch(model, X, y, optimizer, batch_size=256, device="cuda",
         if grad_clip is not None:
             nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
         optimizer.step()
+        if ema is not None:
+            ema.update(model)
         total += loss.item() * len(b)
         seen += len(b)
     return total / seen
@@ -239,6 +259,12 @@ def main() -> None:
     p.add_argument("--lr", type=float, default=1e-3)
     p.add_argument("--pretrained", action="store_true")
     p.add_argument("--augment", action="store_true")
+    p.add_argument("--backbone", default="resnet18",
+                   choices=["resnet18", "shufflenet_v2", "mobilenet_v3",
+                            "convnext_tiny", "efficientnet_b0"],
+                   help="백본 계열. 전부 64x64 용으로 stem 이 수정돼 있다.")
+    p.add_argument("--ema-decay", type=float, default=0.0,
+                   help="가중치 EMA 감쇠. 0 이면 끈다. 켜면 EMA 체크포인트를 따로 저장한다.")
     p.add_argument("--extra-augment", nargs="*", default=[],
                    choices=["scale", "translate", "noise", "dropout"],
                    help="a18 추가 증강. scale/translate 는 pad 표현 전용.")
@@ -276,7 +302,8 @@ def main() -> None:
     tr, va = sp["train"], sp["val"]
     print(f"[data] train {len(tr):,} | val {len(va):,} | classes {len(classes)} | {device}")
 
-    model = build_model(num_classes=len(classes), pretrained=a.pretrained)
+    model = build_model(num_classes=len(classes), pretrained=a.pretrained,
+                        backbone=a.backbone)
     if a.init_encoder:
         sd = torch.load(a.init_encoder, map_location="cpu", weights_only=True)
         missing, unexpected = model.load_state_dict(sd, strict=False)
@@ -293,6 +320,14 @@ def main() -> None:
 
     from a4_eval_wm811k_cls import evaluate
 
+    ema = ema_model = None
+    best_ema = -1.0
+    if a.ema_decay > 0:
+        from a20_ema import EMA
+        ema = EMA(model, decay=a.ema_decay)
+        ema_model = build_model(num_classes=len(classes), backbone=a.backbone).to(device)
+        print(f'[ema] decay={a.ema_decay} — EMA 가중치를 따로 저장한다')
+
     hist, best, t0 = [], -1.0, time.time()
     out_dir = Path(a.out_dir); out_dir.mkdir(parents=True, exist_ok=True)
     for ep in range(1, a.epochs + 1):
@@ -303,7 +338,7 @@ def main() -> None:
         loss = train_one_epoch(model, X[tr], y[tr], opt, a.batch_size, device,
                                weight=w, augment=(a.augment_mode if a.augment else False),
                                extra_augment=tuple(a.extra_augment), rng=rng,
-                               criterion=criterion, grad_clip=a.grad_clip)
+                               criterion=criterion, grad_clip=a.grad_clip, ema=ema)
         m = evaluate(y[va], predict(model, X[va], a.batch_size * 2, device), len(classes))
         hist.append({"epoch": ep, "loss": loss, "val_macro_f1": m["macro_f1"],
                      "val_accuracy": m["accuracy"]})
@@ -311,17 +346,28 @@ def main() -> None:
             snap = out_dir / "snapshots" / a.tag
             snap.mkdir(parents=True, exist_ok=True)
             torch.save(model.state_dict(), snap / f"ep{ep:03d}.pt")
+        if ema is not None:
+            ema.copy_to(ema_model)
+            me = evaluate(y[va], predict(ema_model, X[va], a.batch_size * 2, device),
+                          len(classes))
+            hist[-1]["val_macro_f1_ema"] = me["macro_f1"]
+            if me["macro_f1"] > best_ema:
+                best_ema = me["macro_f1"]
+                torch.save(ema_model.state_dict(), out_dir / f"{a.tag}_ema.pt")
         flag = ""
         if m["macro_f1"] > best:
             best = m["macro_f1"]
             torch.save(model.state_dict(), out_dir / f"{a.tag}_best.pt")
             flag = " *"
+        extra = f"  ema {hist[-1]['val_macro_f1_ema']:.4f}" if ema is not None else ""
         print(f"  ep{ep:>3d}  loss {loss:.4f}  val macro-F1 {m['macro_f1']:.4f}  "
-              f"acc {m['accuracy']:.4f}{flag}")
+              f"acc {m['accuracy']:.4f}{extra}{flag}")
 
     (out_dir / f"{a.tag}_train.json").write_text(json.dumps({
         "config": vars(a) | {"config": str(a.config)},
         "device": device, "best_val_macro_f1": best,
+        "backbone": a.backbone, "ema_decay": a.ema_decay,
+        "best_val_macro_f1_ema": (best_ema if ema is not None else None),
         "seconds": round(time.time() - t0, 1), "history": hist,
     }, indent=2, default=str), encoding="utf-8")
     print(f"[done] best val macro-F1 {best:.4f}  ({time.time() - t0:.0f}s)")

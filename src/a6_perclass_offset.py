@@ -62,7 +62,8 @@ def optimize_offsets(logits: np.ndarray, y: np.ndarray, num_classes: int,
     return off
 
 
-def cache_logits(ckpt: str, cache: str, splits: str, out_dir: str, tag: str) -> str:
+def cache_logits(ckpt: str, cache: str, splits: str, out_dir: str, tag: str,
+                 backbone: str = "resnet18") -> str:
     """체크포인트의 val, test logit 을 한 번 계산해 저장한다. 이후 탐색은 이 파일만 쓴다."""
     import sys
     from pathlib import Path
@@ -81,7 +82,7 @@ def cache_logits(ckpt: str, cache: str, splits: str, out_dir: str, tag: str) -> 
     # 배치 루프 안에서 읽으면 배치당 1.7초가 여기에만 쓰인다. 한 번만 읽는다.
     X, y_all = d["X"], d["y"]
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    model = build_model(num_classes=n_cls, pretrained=False)
+    model = build_model(num_classes=n_cls, pretrained=False, backbone=backbone)
     model.load_state_dict(torch.load(ckpt, map_location=device, weights_only=True))
     model.to(device).eval()
 

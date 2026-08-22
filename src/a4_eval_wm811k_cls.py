@@ -79,6 +79,8 @@ def main() -> None:
     from a3_train_wm811k_cls import build_model, predict
 
     p = argparse.ArgumentParser(description="WM-811K 분류 평가")
+    p.add_argument("--backbone", default="resnet18",
+                   help="체크포인트를 지은 백본. 기본은 resnet18.")
     p.add_argument("--ckpt", required=True)
     p.add_argument("--cache", default="data/wm811k/cache/wm811k_64.npz")
     p.add_argument("--splits", default="data/wm811k/cache/splits_v1.npz")
@@ -95,7 +97,8 @@ def main() -> None:
     idx = sp[a.split]
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    model = build_model(num_classes=len(classes), pretrained=False)
+    model = build_model(num_classes=len(classes), pretrained=False,
+                        backbone=a.backbone)
     model.load_state_dict(torch.load(a.ckpt, map_location=device, weights_only=True))
     pred = predict(model, d["X"][idx], 512, device)
     m = evaluate(d["y"][idx].astype(np.int64), pred, len(classes))
