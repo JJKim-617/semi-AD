@@ -184,7 +184,8 @@ def window_sum(a: np.ndarray, k: int) -> np.ndarray:
     return ndimage.convolve1d(t, ones, axis=2, mode="constant", cval=0.0)
 
 
-def local_fail_density_map(x, k: int = 7, chunk: int = 2000) -> np.ndarray:
+def local_fail_density_map(x, k: int = 7, chunk: int = 2000,
+                           min_dies: int = 1) -> np.ndarray:
     """창 kxk 안 **불량 다이 비율** 맵. template 이 전혀 없다 — 학습이 0 이다.
 
     창 안의 다이 개수로 나누므로 웨이퍼 가장자리에서도 희석되지 않고,
@@ -200,7 +201,8 @@ def local_fail_density_map(x, k: int = 7, chunk: int = 2000) -> np.ndarray:
         fail = (xb == 2).astype(np.float64)
         num = window_sum(fail, k)
         den = window_sum(die, k)
-        out[a:a + len(xb)] = np.where(xb > 0, num / np.where(den > 0, den, 1.0), 0.0)
+        v = np.where(den >= min_dies, num / np.where(den > 0, den, 1.0), 0.0)
+        out[a:a + len(xb)] = np.where(xb > 0, v, 0.0)
     return out
 
 
@@ -230,7 +232,8 @@ def local_fail_count_max(x, k: int = 7, chunk: int = 2000) -> np.ndarray:
     return out
 
 
-def local_fail_density_max(x, k: int = 7, chunk: int = 2000) -> np.ndarray:
+def local_fail_density_max(x, k: int = 7, chunk: int = 2000,
+                           min_dies: int = 1) -> np.ndarray:
     """위 맵의 최대. **이것이 이 워크스트림의 새 바닥이다.**
 
     O0 은 자명한 기준선으로 전역 스칼라만 쟀고 바닥을 AUPR 0.3856 으로 적었다.
@@ -241,7 +244,7 @@ def local_fail_density_max(x, k: int = 7, chunk: int = 2000) -> np.ndarray:
     out = np.empty(len(x), np.float64)
     for a in range(0, len(x), chunk):
         xb = x[a:a + chunk]
-        m = local_fail_density_map(xb, k=k, chunk=chunk)
+        m = local_fail_density_map(xb, k=k, chunk=chunk, min_dies=min_dies)
         out[a:a + len(xb)] = pool_max(m, xb > 0)
     return out
 

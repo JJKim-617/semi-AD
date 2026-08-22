@@ -80,11 +80,20 @@ def _shift_sum(a: np.ndarray, offs: list[tuple[int, int]]) -> np.ndarray:
 
 
 def line_density_map(x, length: int = 7, n_orient: int = 8, width: int = 1,
-                     valid=None, chunk: int = 2000) -> np.ndarray:
+                     valid=None, chunk: int = 2000, min_dies: int = 1) -> np.ndarray:
     """다이별 **방향 최대 선 밀도** 맵. 창 안 다이 개수로 나눈다.
 
-    `valid` 를 주면 그 마스크의 다이만 분모와 분자에 넣는다
-    (중심 다이 제외 arm 에 쓴다).
+    `valid` 를 주면 그 마스크의 다이만 분모와 분자에 넣는다.
+
+    **`min_dies` — 온전 창 가드.** 창 안 다이가 `min_dies` 개 미만이면 그 방향은 버린다.
+
+    왜 필요한가: 창이 웨이퍼 경계에서 잘리면 분모가 2~4로 무너지고, 불량률 11.6% 에서
+    2~4개 연속 불량은 우연히 늘 생긴다. 그래서 **정상 웨이퍼의 70.63% 가 포화**했다.
+    실측하면 포화 창의 43.1% 가 다이 3개짜리이고 온전한 7개짜리는 0.2% 뿐이다.
+    `min_dies=length` 로 온전 창만 보면 정상 포화가 **0.15%** 로 떨어진다.
+
+    3차 사이클에서 이 포화를 "가장자리에 진짜 긴 불량 줄이 있어서" 라고 적었는데
+    **틀린 설명이었다.** 분모 붕괴가 원인이다.
     """
     x = np.asarray(x)
     offs = [_offsets(k) for k in line_kernels(length, n_orient, width)]
@@ -98,19 +107,21 @@ def line_density_map(x, length: int = 7, n_orient: int = 8, width: int = 1,
         for o in offs:
             num = _shift_sum(fail, o)
             den = _shift_sum(die, o)
-            np.maximum(best, num / np.maximum(den, 1e-12), out=best)
+            v = np.where(den >= min_dies, num / np.maximum(den, 1e-12), 0.0)
+            np.maximum(best, v, out=best)
         out[a:a + len(xb)] = np.where(keep, best, 0.0)
     return out.astype(np.float64)
 
 
 def line_density_max(x, length: int = 7, n_orient: int = 8, width: int = 1,
-                     valid=None, chunk: int = 2000) -> np.ndarray:
-    """위 맵의 최대. 주 arm 은 `length=7, n_orient=8, width=1`."""
+                     valid=None, chunk: int = 2000, min_dies: int = 1) -> np.ndarray:
+    """위 맵의 최대. 온전 창 가드를 쓰려면 `min_dies=length`."""
     x = np.asarray(x)
     out = np.empty(len(x), np.float64)
     for a in range(0, len(x), chunk):
         v = None if valid is None else valid[a:a + chunk]
-        m = line_density_map(x[a:a + chunk], length, n_orient, width, v, chunk)
+        m = line_density_map(x[a:a + chunk], length, n_orient, width, v, chunk,
+                             min_dies=min_dies)
         out[a:a + len(m)] = m.reshape(len(m), -1).max(1)
     return out
 
