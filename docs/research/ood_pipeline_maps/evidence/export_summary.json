@@ -1,0 +1,13 @@
+{
+  "n_exported": 12894,
+  "n_defect": 7894,
+  "n_normal": 5000,
+  "coords": "pad (original size, centred), 64x64",
+  "maps": {
+    "A_radialcal_k2k5": "반경 대역 보정 k² 5x5 — 전반",
+    "B_line_L11_full": "온전창 선 L=11 — Scratch",
+    "C_k2_k3": "k² 3x3 — Center"
+  },
+  "score": "3-signal Fisher fusion, blocked AUPR 0.8325, FPR@95TPR 0.1719",
+  "note": "픽셀 단위 정답 없음 — 정성 평가 전용 (기획서 §9.3)"
+}
