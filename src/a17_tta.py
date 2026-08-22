@@ -55,7 +55,8 @@ def _softmax(z: np.ndarray) -> np.ndarray:
 
 def cache_tta_logits(ckpt: str, cache: str, splits: str, out_dir: str, tag: str,
                      scheme: str = "dihedral", n_angle: int = 8, flips: bool = True,
-                     batch_size: int = 512, backbone: str = "resnet18") -> str:
+                     batch_size: int = 512, backbone: str = "resnet18",
+                    density_ks=(), density_shuffle_seed=None, line_ls=()) -> str:
     """TTA 평균 확률을 로그로 되돌려 a6 와 같은 npz 형식으로 저장한다.
 
     확률을 평균한 뒤 log 를 취한다. 앙상블 도구가 로짓에 softmax 를 다시 걸어도
@@ -66,8 +67,9 @@ def cache_tta_logits(ckpt: str, cache: str, splits: str, out_dir: str, tag: str,
     from _runtime import setup
     setup("logits")
     import torch
-    from a3_train_wm811k_cls import build_model, to_onehot
+    from a3_train_wm811k_cls import build_model, encode_device
 
+    density_ks, line_ls = tuple(density_ks), tuple(line_ls)
     path = Path(out_dir) / f"{tag}_logits.npz"
     if path.exists():
         return str(path)
@@ -76,7 +78,8 @@ def cache_tta_logits(ckpt: str, cache: str, splits: str, out_dir: str, tag: str,
     n_cls = len(d["classes"])
     X, y_all = d["X"], d["y"]          # npz 지연 로딩을 배치 루프 밖에서 한 번만
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    model = build_model(num_classes=n_cls, pretrained=False, backbone=backbone)
+    model = build_model(num_classes=n_cls, pretrained=False, backbone=backbone,
+                        in_channels=3 + len(density_ks) + len(line_ls))
     model.load_state_dict(torch.load(ckpt, map_location=device, weights_only=True))
     model.to(device).eval()
 
@@ -95,8 +98,11 @@ def cache_tta_logits(ckpt: str, cache: str, splits: str, out_dir: str, tag: str,
             for i in range(0, len(idx), batch_size):
                 b = idx[i:i + batch_size]
                 raw = X[b]
+                # 밀도 맵은 dihedral 과 정확히 교환되므로 변환본 위에서 그대로 다시 계산한다.
                 probs = [
-                    _softmax(model(to_onehot(v).to(device)).cpu().numpy().astype(np.float64))
+                    _softmax(model(encode_device(v, density_ks, device,
+                                                 density_shuffle_seed, line_ls))
+                             .cpu().numpy().astype(np.float64))
                     for v in variants(raw)
                 ]
                 out[i:i + len(b)] = np.log(np.clip(average_probs(probs), 1e-12, None))
@@ -136,7 +142,10 @@ def main() -> None:
         tta_tag = f"{e['tag']}_{suffix}"
         cache_tta_logits(e["ckpt"], e["cache"], a.splits, a.out_dir, tta_tag,
                          scheme=scheme, flips=not a.rotations_only,
-                         backbone=e.get("backbone", "resnet18"))
+                         backbone=e.get("backbone", "resnet18"),
+                         density_ks=tuple(e.get("density_ks", ())),
+                         density_shuffle_seed=e.get("density_shuffle"),
+                         line_ls=tuple(e.get("line_ls", ())))
 
         base = np.load(Path(a.out_dir) / f"{e['tag']}_logits.npz")
         tta = np.load(Path(a.out_dir) / f"{tta_tag}_logits.npz")

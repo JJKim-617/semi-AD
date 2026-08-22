@@ -1,0 +1,18 @@
+{
+  "n_tta_members": 18,
+  "flat": 0.793098890507911,
+  "flat_accuracy": 0.9727391542645136,
+  "remove_false_positives": 0.8273962623309827,
+  "defect_recall_one": 0.8409287767307193,
+  "perfect_binary_stage1": 0.8746451507504595,
+  "perfect_stage2": 0.8849632384509685,
+  "defect_only_8way_accuracy": 0.8699011907778059,
+  "errors_total": 3233,
+  "errors_defect_to_defect": 647,
+  "flat_fp": 1057,
+  "flat_fn": 1529,
+  "two_stage_oracle_threshold": 0.7922073469027529,
+  "two_stage_oracle_t": 0.48070741344484014,
+  "two_stage_fp": 1261,
+  "two_stage_fn": 1359
+}

@@ -36,12 +36,77 @@ def to_onehot(x: np.ndarray) -> torch.Tensor:
     return nn.functional.one_hot(t, NUM_CATEGORIES).permute(0, 3, 1, 2).float()
 
 
+def encode(x: np.ndarray, density_ks=(), shuffle_seed: int | None = None,
+           line_ls=()) -> torch.Tensor:
+    """모델 입력 텐서를 만든다. one-hot 3채널 뒤에 국소 밀도 채널을 이어붙인다.
+
+    `density_ks=()` 면 `to_onehot` 과 완전히 같다. **기본값을 바꾸면 기존 체크포인트
+    41개를 못 읽는다.**
+
+    `shuffle_seed` 는 E20 의 대조군이다 — 밀도 채널을 **다른 웨이퍼에서 가져온다.**
+    채널 수, 파라미터 수, 채널별 통계가 전부 보존되고 one-hot 과의 대응만 깨지므로,
+    이득이 정보 때문인지 용량 때문인지를 가른다(E11 의 크기 값 셔플과 같은 설계).
+    """
+    t = to_onehot(x)
+    if not len(density_ks) and not len(line_ls):
+        return t
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from a21_density import density_stack
+    from a22_line_filter import line_density_map
+
+    src = np.asarray(x)
+    if shuffle_seed is not None:
+        src = src[np.random.default_rng(shuffle_seed).permutation(len(src))]
+    parts = [t]
+    if len(density_ks):
+        parts.append(torch.from_numpy(density_stack(src, tuple(density_ks))))
+    for L in line_ls:
+        m = line_density_map(src, length=int(L), n_orient=8, min_dies=int(L))
+        parts.append(torch.from_numpy(m.astype(np.float32)).unsqueeze(1))
+    return torch.cat(parts, dim=1)
+
+
+def encode_device(x: np.ndarray, density_ks=(), device="cuda",
+                  shuffle_seed: int | None = None, line_ls=()) -> torch.Tensor:
+    """`encode` 와 같은 값을 목표 장치에서 바로 만든다. 학습, 추론 경로는 이쪽을 쓴다.
+
+    밀도를 CPU numpy 로 계산하면 96s/epoch 로 학습(38s)보다 비싸다. 같은 정의를
+    `avg_pool2d` 로 옮겨 GPU 에서 계산한다. 두 구현이 같다는 것은 시험으로 박아 뒀다.
+    """
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from a21_density import density_stack_torch
+    from a22_line_filter import line_density_stack_torch
+
+    t = torch.from_numpy(np.ascontiguousarray(x)).to(device).long()
+    oh = nn.functional.one_hot(t, NUM_CATEGORIES).permute(0, 3, 1, 2).float()
+    if not len(density_ks) and not len(line_ls):
+        return oh
+    src = t
+    if shuffle_seed is not None:
+        perm = np.random.default_rng(shuffle_seed).permutation(len(t))
+        src = t[torch.from_numpy(perm).to(device)]
+    parts = [oh]
+    if len(density_ks):
+        parts.append(density_stack_torch(src, tuple(density_ks)))
+    if len(line_ls):
+        parts.append(line_density_stack_torch(src, tuple(int(L) for L in line_ls)))
+    return torch.cat(parts, dim=1)
+
+
 def build_model(num_classes: int = 9, pretrained: bool = False,
-                backbone: str = "resnet18") -> nn.Module:
+                backbone: str = "resnet18", in_channels: int = 3) -> nn.Module:
     """저해상도용으로 stem 을 고친 분류기.
 
     기본은 ResNet-18 이다. 기존 체크포인트가 전부 그것이고 호출부 여섯 곳이
     인자 없이 부르므로 **기본값을 바꾸면 과거 결과를 되읽을 수 없다.**
+
+    `in_channels` 는 E20 의 국소 밀도 채널용이다. stem 의 입력 채널만 바뀌고
+    나머지 구조는 그대로다. a19 백본들은 3채널 전제로 stem 이 수정돼 있으므로
+    **조용히 어긋나느니 거절한다.**
 
     pretrained=True 면 layer1~4 는 ImageNet 가중치를 쓰고 stem 만 새로 초기화된다.
     stem 은 커널 형상이 달라 사전학습 가중치를 이어받을 수 없다.
@@ -54,6 +119,9 @@ def build_model(num_classes: int = 9, pretrained: bool = False,
     if backbone != "resnet18":
         if pretrained:
             raise ValueError(f"{backbone} 는 사전학습을 지원하지 않는다")
+        if in_channels != NUM_CATEGORIES:
+            raise NotImplementedError(
+                f"{backbone} 는 {NUM_CATEGORIES} 채널 입력만 지원한다 (요청 {in_channels})")
         import sys
         from pathlib import Path
         sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -62,7 +130,7 @@ def build_model(num_classes: int = 9, pretrained: bool = False,
 
     weights = tvm.ResNet18_Weights.IMAGENET1K_V1 if pretrained else None
     m = tvm.resnet18(weights=weights)
-    m.conv1 = nn.Conv2d(NUM_CATEGORIES, 64, kernel_size=3, stride=1, padding=1, bias=False)
+    m.conv1 = nn.Conv2d(in_channels, 64, kernel_size=3, stride=1, padding=1, bias=False)
     m.maxpool = nn.Identity()
     m.fc = nn.Linear(m.fc.in_features, num_classes)
     return m
@@ -198,7 +266,8 @@ def _batches(n: int, batch_size: int, shuffle: bool, rng=None):
 
 def train_one_epoch(model, X, y, optimizer, batch_size=256, device="cuda",
                     weight=None, augment=False, extra_augment=(), rng=None, criterion=None,
-                    grad_clip=None, ema=None) -> float:
+                    grad_clip=None, ema=None, density_ks=(), density_shuffle_seed=None,
+                    line_ls=()) -> float:
     """한 에폭 학습하고 평균 손실을 반환한다.
 
     criterion 을 주면 그것을 쓰고, 없으면 weight 를 반영한 CrossEntropy 를 쓴다.
@@ -214,7 +283,9 @@ def train_one_epoch(model, X, y, optimizer, batch_size=256, device="cuda",
         if augment:
             xb = augment_batch(xb, "dihedral" if augment is True else augment, rng,
                                extra=extra_augment)
-        inp = to_onehot(xb).to(device)
+        # 밀도는 **증강 뒤에** 계산한다. dihedral/translate 와 교환되므로 값은 같지만,
+        # 증강 뒤 계산이 정의상 항상 옳다.
+        inp = encode_device(xb, density_ks, device, density_shuffle_seed, line_ls)
         tgt = torch.as_tensor(y[b], dtype=torch.long, device=device)
         optimizer.zero_grad(set_to_none=True)
         loss = crit(model(inp), tgt)
@@ -230,12 +301,14 @@ def train_one_epoch(model, X, y, optimizer, batch_size=256, device="cuda",
 
 
 @torch.no_grad()
-def predict(model, X, batch_size=512, device="cuda") -> np.ndarray:
+def predict(model, X, batch_size=512, device="cuda",
+            density_ks=(), density_shuffle_seed=None, line_ls=()) -> np.ndarray:
     """예측 라벨을 반환한다. 가중치를 바꾸지 않는다."""
     model.to(device).eval()
     out = np.empty(len(X), dtype=np.int64)
     for b in _batches(len(X), batch_size, shuffle=False):
-        logits = model(to_onehot(X[b]).to(device))
+        logits = model(encode_device(X[b], density_ks, device, density_shuffle_seed,
+                                     line_ls))
         out[b] = logits.argmax(dim=1).cpu().numpy()
     return out
 
@@ -271,6 +344,15 @@ def main() -> None:
     p.add_argument("--augment-mode", choices=["dihedral", "angular"], default="dihedral",
                    help="dihedral=카르테시안(pad, resize)용, angular=극좌표용. "
                         "표현과 어긋나면 학습이 망가진다.")
+    p.add_argument("--density-ks", nargs="*", type=int, default=[],
+                   help="E20 국소 밀도 입력 채널의 창 크기(홀수). 예: --density-ks 5 7. "
+                        "비우면 기존과 동일한 one-hot 3채널이다.")
+    p.add_argument("--line-ls", nargs="*", type=int, default=[],
+                   help="E21 방향성 선 필터 채널의 길이(홀수). 예: --line-ls 11. "
+                        "길이마다 min_dies=length 로 온전한 창만 본다.")
+    p.add_argument("--density-shuffle", type=int, default=None,
+                   help="대조군. 밀도 채널을 다른 웨이퍼에서 가져온다(순열 seed). "
+                        "이득이 정보 때문인지 용량 때문인지를 가른다.")
     p.add_argument("--class-weight", action="store_true")
     p.add_argument("--loss", default="ce", choices=["ce", "focal"])
     p.add_argument("--gamma", type=float, default=2.0)
@@ -302,8 +384,15 @@ def main() -> None:
     tr, va = sp["train"], sp["val"]
     print(f"[data] train {len(tr):,} | val {len(va):,} | classes {len(classes)} | {device}")
 
+    dks = tuple(a.density_ks)
+    lls = tuple(a.line_ls)
+    in_ch = NUM_CATEGORIES + len(dks) + len(lls)
+    if dks or lls:
+        print(f"[channel] 밀도창 {list(dks)} 선길이 {list(lls)} -> 입력 {in_ch}채널"
+              + (f"  (셔플 대조군 seed={a.density_shuffle})"
+                 if a.density_shuffle is not None else ""))
     model = build_model(num_classes=len(classes), pretrained=a.pretrained,
-                        backbone=a.backbone)
+                        backbone=a.backbone, in_channels=in_ch)
     if a.init_encoder:
         sd = torch.load(a.init_encoder, map_location="cpu", weights_only=True)
         missing, unexpected = model.load_state_dict(sd, strict=False)
@@ -325,7 +414,8 @@ def main() -> None:
     if a.ema_decay > 0:
         from a20_ema import EMA
         ema = EMA(model, decay=a.ema_decay)
-        ema_model = build_model(num_classes=len(classes), backbone=a.backbone).to(device)
+        ema_model = build_model(num_classes=len(classes), backbone=a.backbone,
+                                in_channels=in_ch).to(device)
         print(f'[ema] decay={a.ema_decay} — EMA 가중치를 따로 저장한다')
 
     hist, best, t0 = [], -1.0, time.time()
@@ -338,8 +428,12 @@ def main() -> None:
         loss = train_one_epoch(model, X[tr], y[tr], opt, a.batch_size, device,
                                weight=w, augment=(a.augment_mode if a.augment else False),
                                extra_augment=tuple(a.extra_augment), rng=rng,
-                               criterion=criterion, grad_clip=a.grad_clip, ema=ema)
-        m = evaluate(y[va], predict(model, X[va], a.batch_size * 2, device), len(classes))
+                               criterion=criterion, grad_clip=a.grad_clip, ema=ema,
+                               density_ks=dks, density_shuffle_seed=a.density_shuffle,
+                               line_ls=lls)
+        m = evaluate(y[va], predict(model, X[va], a.batch_size * 2, device,
+                                    density_ks=dks, line_ls=lls,
+                                    density_shuffle_seed=a.density_shuffle), len(classes))
         hist.append({"epoch": ep, "loss": loss, "val_macro_f1": m["macro_f1"],
                      "val_accuracy": m["accuracy"]})
         if should_snapshot(ep, a.epochs, a.snapshot_every):
@@ -348,7 +442,9 @@ def main() -> None:
             torch.save(model.state_dict(), snap / f"ep{ep:03d}.pt")
         if ema is not None:
             ema.copy_to(ema_model)
-            me = evaluate(y[va], predict(ema_model, X[va], a.batch_size * 2, device),
+            me = evaluate(y[va], predict(ema_model, X[va], a.batch_size * 2, device,
+                                         density_ks=dks, line_ls=lls,
+                                         density_shuffle_seed=a.density_shuffle),
                           len(classes))
             hist[-1]["val_macro_f1_ema"] = me["macro_f1"]
             if me["macro_f1"] > best_ema:

@@ -89,6 +89,12 @@ def main() -> None:
     p.add_argument("--tag", default=None)
     p.add_argument("--pretrained", action="store_true",
                    help="체크포인트를 만든 모델 구조와 맞추기 위한 플래그(가중치는 ckpt 로 덮인다)")
+    p.add_argument("--density-ks", nargs="*", type=int, default=[],
+                   help="E20 국소 밀도 채널. 학습 때 쓴 것과 같아야 한다.")
+    p.add_argument("--line-ls", nargs="*", type=int, default=[],
+                   help="E21 선 필터 채널. 학습 때 쓴 것과 같아야 한다.")
+    p.add_argument("--density-shuffle", type=int, default=None,
+                   help="셔플 대조군 체크포인트를 평가할 때만 준다.")
     a = p.parse_args()
     tag = a.tag or Path(a.ckpt).stem
 
@@ -97,10 +103,12 @@ def main() -> None:
     idx = sp[a.split]
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
+    dks, lls = tuple(a.density_ks), tuple(a.line_ls)
     model = build_model(num_classes=len(classes), pretrained=False,
-                        backbone=a.backbone)
+                        backbone=a.backbone, in_channels=3 + len(dks) + len(lls))
     model.load_state_dict(torch.load(a.ckpt, map_location=device, weights_only=True))
-    pred = predict(model, d["X"][idx], 512, device)
+    pred = predict(model, d["X"][idx], 512, device, line_ls=lls,
+                   density_ks=dks, density_shuffle_seed=a.density_shuffle)
     m = evaluate(d["y"][idx].astype(np.int64), pred, len(classes))
 
     out = Path(a.out_dir); out.mkdir(parents=True, exist_ok=True)

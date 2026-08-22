@@ -63,7 +63,8 @@ def optimize_offsets(logits: np.ndarray, y: np.ndarray, num_classes: int,
 
 
 def cache_logits(ckpt: str, cache: str, splits: str, out_dir: str, tag: str,
-                 backbone: str = "resnet18") -> str:
+                 backbone: str = "resnet18", density_ks=(),
+                 density_shuffle_seed=None, line_ls=(), batch: int = 512) -> str:
     """체크포인트의 val, test logit 을 한 번 계산해 저장한다. 이후 탐색은 이 파일만 쓴다."""
     import sys
     from pathlib import Path
@@ -71,8 +72,9 @@ def cache_logits(ckpt: str, cache: str, splits: str, out_dir: str, tag: str,
     from _runtime import setup
     setup("logits")
     import torch
-    from a3_train_wm811k_cls import build_model, to_onehot
+    from a3_train_wm811k_cls import build_model, encode_device
 
+    density_ks, line_ls = tuple(density_ks), tuple(line_ls)
     path = Path(out_dir) / f"{tag}_logits.npz"
     if path.exists():
         return str(path)
@@ -82,7 +84,8 @@ def cache_logits(ckpt: str, cache: str, splits: str, out_dir: str, tag: str,
     # 배치 루프 안에서 읽으면 배치당 1.7초가 여기에만 쓰인다. 한 번만 읽는다.
     X, y_all = d["X"], d["y"]
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    model = build_model(num_classes=n_cls, pretrained=False, backbone=backbone)
+    model = build_model(num_classes=n_cls, pretrained=False, backbone=backbone,
+                        in_channels=3 + len(density_ks) + len(line_ls))
     model.load_state_dict(torch.load(ckpt, map_location=device, weights_only=True))
     model.to(device).eval()
 
@@ -91,9 +94,13 @@ def cache_logits(ckpt: str, cache: str, splits: str, out_dir: str, tag: str,
         for split in ("val", "test"):
             idx = sp[split]
             z = np.empty((len(idx), n_cls), dtype=np.float32)
-            for i in range(0, len(idx), 512):
-                b = idx[i:i + 512]
-                z[i:i + len(b)] = model(to_onehot(X[b]).to(device)).cpu().numpy()
+            # batch 를 낮출 수 있게 열어 뒀다. GPU 0 을 다른 학습과 공유할 때
+            # 512 로는 OOM 이 난다(학습 둘이 21GB 를 잡고 있으면 남는 것이 2GB 다).
+            for i in range(0, len(idx), batch):
+                b = idx[i:i + batch]
+                inp = encode_device(X[b], density_ks, device, density_shuffle_seed,
+                                    line_ls)
+                z[i:i + len(b)] = model(inp).cpu().numpy()
             store[f"{split}_logits"] = z
             store[f"{split}_y"] = y_all[idx].astype(np.int64)
     path.parent.mkdir(parents=True, exist_ok=True)

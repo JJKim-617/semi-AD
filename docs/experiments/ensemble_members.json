@@ -311,5 +311,50 @@
     "representation": "pad64",
     "architecture": "resnet18",
     "note": "EMA 가중치"
+  },
+  {
+    "tag": "e20_dens_s0",
+    "ckpt": "result/cls_baseline/e20_dens_s0_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "resnet18",
+    "density_ks": [
+      5,
+      7
+    ]
+  },
+  {
+    "tag": "e20_dens_s1",
+    "ckpt": "result/cls_baseline/e20_dens_s1_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "resnet18",
+    "density_ks": [
+      5,
+      7
+    ]
+  },
+  {
+    "tag": "e20_dens_s2",
+    "ckpt": "result/cls_baseline/e20_dens_s2_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "resnet18",
+    "density_ks": [
+      5,
+      7
+    ]
+  },
+  {
+    "tag": "e20_shuf_s0",
+    "ckpt": "result/cls_baseline/e20_shuf_s0_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "resnet18",
+    "density_ks": [
+      5,
+      7
+    ],
+    "density_shuffle": 12345
   }
 ]

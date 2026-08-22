@@ -74,7 +74,12 @@ def _load_members(manifest: str, out_dir: str, splits: str):
         path = Path(out_dir) / f"{e['tag']}_logits.npz"
         if not path.exists():
             print(f"  [로짓 생성] {e['tag']}")
-            cache_logits(e["ckpt"], e["cache"], splits, out_dir, e["tag"])
+            # 백본과 밀도 채널을 넘기지 않으면 3채널 resnet18 로 만들어
+            # e18/e20 체크포인트를 못 읽는다.
+            cache_logits(e["ckpt"], e["cache"], splits, out_dir, e["tag"],
+                         backbone=e.get("backbone", "resnet18"),
+                         density_ks=tuple(e.get("density_ks", ())),
+                         density_shuffle_seed=e.get("density_shuffle"))
         d = np.load(path)
         if y is None:
             y = d["test_y"]
