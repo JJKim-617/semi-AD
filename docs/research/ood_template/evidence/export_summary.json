@@ -5,8 +5,9 @@
   "coords": "pad (original size, centred), 64x64",
   "maps": {
     "density_k5": "창 5x5 불량 다이 비율, template 없음",
-    "radial_residual_k5": "반경 template NLL 잔차를 5x5 평활"
+    "radial_residual_k5": "반경 template NLL 잔차를 5x5 평활",
+    "radial_cal_k7": "창 7x7 밀도의 반경 대역별 정상 백분위 (최선)"
   },
-  "ranking_score": "local fail density max 7x7 (AUPR 0.7147)",
+  "ranking_score": "radius-calibrated density max 7x7 (AUPR 0.7407)",
   "note": "픽셀 단위 정답 없음 — 정성 평가 전용 (기획서 §9.3)"
 }

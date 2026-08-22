@@ -111,3 +111,44 @@ def fail_ratio(x: np.ndarray) -> np.ndarray:
     n_die = (x > 0).sum(axis=(1, 2)).astype(np.float64)
     n_fail = (x == 2).sum(axis=(1, 2)).astype(np.float64)
     return n_fail / np.maximum(n_die, 1.0)
+
+
+# --- 운영 지점 -----------------------------------------------------------------
+
+def operating_points(score, label, recalls=(0.5, 0.8, 0.95)) -> list:
+    """목표 재현율마다 문턱, precision, 헛경보 장수를 돌려준다.
+
+    **AUPR 총합은 어디서 무너지는지를 가린다.** k=7 국소 밀도는 AUPR 0.7145 인데
+    결함 50% 를 잡을 때 precision 0.862, 80% 를 잡을 때 0.357 이다 —
+    그 사이에서 반토막 난다. 팹이 실제로 감당하는 것은 그 숫자이지 곡선 아래 넓이가 아니다.
+
+    `n_tied_at_threshold` 를 같이 낸다. 동점이 많으면 **운영 지점이 한 점이 아니라
+    구간**이 되고, precision 을 한 숫자로 읽으면 안 된다.
+    창 3x3 밀도는 고유값이 24개뿐이라 문턱 하나가 수만 장을 한꺼번에 넘긴다.
+    """
+    score, label = _check(score, label)
+    for t in recalls:
+        if not 0.0 < t <= 1.0:
+            raise ValueError(f"목표 재현율은 (0,1] 이어야 한다: {t}")
+    order = np.argsort(-score, kind="mergesort")
+    s, l = score[order], label[order]
+    tp = np.cumsum(l)
+    fp = np.cumsum(1 - l)
+    n_pos = int(l.sum())
+    rec = tp / n_pos
+    out = []
+    for t in recalls:
+        i = int(np.searchsorted(rec, t))
+        i = min(i, len(rec) - 1)
+        thr = float(s[i])
+        out.append({
+            "target_recall": float(t),
+            "threshold": thr,
+            "recall": float(rec[i]),
+            "precision": float(tp[i] / (tp[i] + fp[i])),
+            "true_positives": int(tp[i]),
+            "false_positives": int(fp[i]),
+            "false_negatives": int(n_pos - tp[i]),
+            "n_tied_at_threshold": int((score == thr).sum()),
+        })
+    return out

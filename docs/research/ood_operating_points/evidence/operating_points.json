@@ -1,0 +1,246 @@
+{
+  "operating_points": {
+    "국소 밀도 max k=3": [
+      {
+        "target_recall": 0.5,
+        "threshold": 1.0,
+        "recall": 0.5,
+        "precision": 0.48602388868365964,
+        "true_positives": 3947,
+        "false_positives": 4174,
+        "false_negatives": 3947,
+        "n_tied_at_threshold": 6984
+      },
+      {
+        "target_recall": 0.8,
+        "threshold": 0.8000000000000002,
+        "recall": 0.800101342791994,
+        "precision": 0.27787065552133744,
+        "true_positives": 6316,
+        "false_positives": 16414,
+        "false_negatives": 1578,
+        "n_tied_at_threshold": 1536
+      },
+      {
+        "target_recall": 0.95,
+        "threshold": 0.6666666666666666,
+        "recall": 0.9500886749429946,
+        "precision": 0.1329928715820832,
+        "true_positives": 7500,
+        "false_positives": 48894,
+        "false_negatives": 394,
+        "n_tied_at_threshold": 18446
+      }
+    ],
+    "국소 밀도 max k=5": [
+      {
+        "target_recall": 0.5,
+        "threshold": 0.733333333333333,
+        "recall": 0.5,
+        "precision": 0.7909819639278557,
+        "true_positives": 3947,
+        "false_positives": 1043,
+        "false_negatives": 3947,
+        "n_tied_at_threshold": 5
+      },
+      {
+        "target_recall": 0.8,
+        "threshold": 0.5599999999999999,
+        "recall": 0.800101342791994,
+        "precision": 0.36351079136690645,
+        "true_positives": 6316,
+        "false_positives": 11059,
+        "false_negatives": 1578,
+        "n_tied_at_threshold": 110
+      },
+      {
+        "target_recall": 0.95,
+        "threshold": 0.4285714285714286,
+        "recall": 0.9500886749429946,
+        "precision": 0.13291509383805625,
+        "true_positives": 7500,
+        "false_positives": 48927,
+        "false_negatives": 394,
+        "n_tied_at_threshold": 2564
+      }
+    ],
+    "국소 밀도 max k=7": [
+      {
+        "target_recall": 0.5,
+        "threshold": 0.5769230769230769,
+        "recall": 0.5,
+        "precision": 0.8627322404371585,
+        "true_positives": 3947,
+        "false_positives": 628,
+        "false_negatives": 3947,
+        "n_tied_at_threshold": 162
+      },
+      {
+        "target_recall": 0.8,
+        "threshold": 0.423076923076923,
+        "recall": 0.800101342791994,
+        "precision": 0.35647364262332093,
+        "true_positives": 6316,
+        "false_positives": 11402,
+        "false_negatives": 1578,
+        "n_tied_at_threshold": 646
+      },
+      {
+        "target_recall": 0.95,
+        "threshold": 0.30612244897959184,
+        "recall": 0.9500886749429946,
+        "precision": 0.12270741643624941,
+        "true_positives": 7500,
+        "false_positives": 53621,
+        "false_negatives": 394,
+        "n_tied_at_threshold": 165
+      }
+    ],
+    "국소 밀도 max k=9": [
+      {
+        "target_recall": 0.5,
+        "threshold": 0.46913580246913594,
+        "recall": 0.5,
+        "precision": 0.8387165320866978,
+        "true_positives": 3947,
+        "false_positives": 759,
+        "false_negatives": 3947,
+        "n_tied_at_threshold": 9
+      },
+      {
+        "target_recall": 0.8,
+        "threshold": 0.33333333333333354,
+        "recall": 0.800101342791994,
+        "precision": 0.32732172470978443,
+        "true_positives": 6316,
+        "false_positives": 12980,
+        "false_negatives": 1578,
+        "n_tied_at_threshold": 37
+      },
+      {
+        "target_recall": 0.95,
+        "threshold": 0.23809523809523808,
+        "recall": 0.9500886749429946,
+        "precision": 0.11639998137600298,
+        "true_positives": 7500,
+        "false_positives": 56933,
+        "false_negatives": 394,
+        "n_tied_at_threshold": 337
+      }
+    ],
+    "반경보정 밀도 k=7": [
+      {
+        "target_recall": 0.5,
+        "threshold": 0.9999275207519531,
+        "recall": 0.5,
+        "precision": 0.8796523289503009,
+        "true_positives": 3947,
+        "false_positives": 540,
+        "false_negatives": 3947,
+        "n_tied_at_threshold": 19
+      },
+      {
+        "target_recall": 0.8,
+        "threshold": 0.9970725178718567,
+        "recall": 0.800101342791994,
+        "precision": 0.46420696751433194,
+        "true_positives": 6316,
+        "false_positives": 7290,
+        "false_negatives": 1578,
+        "n_tied_at_threshold": 344
+      },
+      {
+        "target_recall": 0.95,
+        "threshold": 0.9644516706466675,
+        "recall": 0.9500886749429946,
+        "precision": 0.15826457616746503,
+        "true_positives": 7500,
+        "false_positives": 39889,
+        "false_negatives": 394,
+        "n_tied_at_threshold": 104
+      }
+    ],
+    "E0 불량 다이 비율": [
+      {
+        "target_recall": 0.5,
+        "threshold": 0.1484480431848853,
+        "recall": 0.5,
+        "precision": 0.24713543297226223,
+        "true_positives": 3947,
+        "false_positives": 12024,
+        "false_negatives": 3947,
+        "n_tied_at_threshold": 28
+      },
+      {
+        "target_recall": 0.8,
+        "threshold": 0.09792993630573249,
+        "recall": 0.800101342791994,
+        "precision": 0.12069097301842086,
+        "true_positives": 6316,
+        "false_positives": 46016,
+        "false_negatives": 1578,
+        "n_tied_at_threshold": 35
+      },
+      {
+        "target_recall": 0.95,
+        "threshold": 0.06082036775106082,
+        "recall": 0.9500886749429946,
+        "precision": 0.08424883736604435,
+        "true_positives": 7500,
+        "false_positives": 81522,
+        "false_negatives": 394,
+        "n_tied_at_threshold": 7
+      }
+    ]
+  },
+  "tie_sensitivity": {
+    "국소 밀도 max k=3": {
+      "aupr_det": 0.4985505695845673,
+      "tie_lo": 0.4111514362399354,
+      "tie_hi": 0.4248440477279709,
+      "tie_med": 0.41935234478134,
+      "n_unique": 108,
+      "auroc": 0.9079798853631587
+    },
+    "국소 밀도 max k=5": {
+      "aupr_det": 0.6876373383935185,
+      "tie_lo": 0.681930217499353,
+      "tie_hi": 0.6855512722125474,
+      "tie_med": 0.6842877621594914,
+      "n_unique": 875,
+      "auroc": 0.9229326852811752
+    },
+    "국소 밀도 max k=7": {
+      "aupr_det": 0.714496754863441,
+      "tie_lo": 0.7144324432150299,
+      "tie_hi": 0.7151418356413135,
+      "tie_med": 0.7149340513904026,
+      "n_unique": 2017,
+      "auroc": 0.9206533598893297
+    },
+    "국소 밀도 max k=9": {
+      "aupr_det": 0.7005793880217523,
+      "tie_lo": 0.7002444963388516,
+      "tie_hi": 0.7008857436104036,
+      "tie_med": 0.7007376924543733,
+      "n_unique": 4091,
+      "auroc": 0.9148985871635587
+    },
+    "반경보정 밀도 k=7": {
+      "aupr_det": 0.7406762059884503,
+      "tie_lo": 0.7404090715329233,
+      "tie_hi": 0.7444882498115947,
+      "tie_med": 0.7426136442852247,
+      "n_unique": 2343,
+      "auroc": 0.9396497395881103
+    },
+    "E0 불량 다이 비율": {
+      "aupr_det": 0.38562336170092304,
+      "tie_lo": 0.3856661798683374,
+      "tie_hi": 0.38569122690448626,
+      "tie_med": 0.38567910192842003,
+      "n_unique": 7986,
+      "auroc": 0.7898787991208258
+    }
+  }
+}

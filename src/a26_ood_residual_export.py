@@ -8,13 +8,15 @@
 실측으로 정해졌다(`docs/experiments/candidate/ood_residual_pooling.md` 판정 절).
 
 1. **`density` — 창 5x5 안 불량 다이 비율.** template 이 없다. 학습이 0 이다.
-   이것의 최대(k=7)가 지금 가장 강한 탐지기다(AUPR 0.7147).
 2. **`radial_residual` — 반경 template 잔차를 같은 창으로 평활한 것.**
-   전체 AUPR 로는 1번에 지지만 **Scratch, Center, Loc 에서는 1번을 이긴다.**
-   정상 웨이퍼가 이미 자주 죽는 자리(정중앙 다이, 가장자리 링)를 깎아 주기 때문이다.
+   정상이 이미 자주 죽는 자리(정중앙 다이, 가장자리 링)를 깎아 준다.
+3. **`radial_cal` — 창 7x7 밀도를 같은 반경 대역 정상 다이 분포에서의 백분위로 바꾼 것.**
+   **지금 가장 강한 탐지기다**(AUPR 0.7407, FPR@95TPR 0.3603) 그리고
+   Scratch/Center/Loc 을 동시에 최고로 만든 유일한 arm 이다.
+   값이 "이 자리 치고 얼마나 드문가" 라서 사람이 읽기도 쉽다.
 
-둘 다 내보내는 이유: 어느 쪽이 하류 8종 분류를 돕는지는 **아직 모른다.**
-기획서 §9.4 의 간접 평가로 판정할 일이고, 그러려면 둘 다 있어야 한다.
+셋 다 내보내는 이유: 어느 쪽이 하류 8종 분류를 돕는지는 **아직 모른다.**
+기획서 §9.4 의 간접 평가로 판정할 일이고, 그러려면 다 있어야 한다.
 
 ## 좌표계
 
@@ -46,6 +48,11 @@ from matplotlib.colors import ListedColormap  # noqa: E402
 
 from a21_ood_metrics import fail_ratio  # noqa: E402
 from a22_ood_template import assert_one_class, fit_radial_template  # noqa: E402
+from a29_radial_calibration import (  # noqa: E402
+    band_index,
+    calibrate_map,
+    fit_band_reference,
+)
 from a24_ood_residual import (  # noqa: E402
     local_fail_density_map,
     local_fail_density_max,
@@ -114,6 +121,13 @@ def _panel(ax, img, title, kind, die=None):
         ax.imshow(np.where(die, img, np.nan), cmap="inferno", vmin=0, vmax=1,
                   interpolation="nearest")
         ax.set_facecolor("#e8e8e8")
+    elif kind == "surprisal":
+        # 백분위 u 를 그대로 그리면 1 근처에 몰려 온통 노랗다 (다이 800개의 최대는
+        # 귀무에서도 1-1/800 근처다). -log10(1-u) 로 펴야 사람이 읽을 수 있다.
+        v = -np.log10(np.clip(1.0 - img, 1e-6, 1.0))
+        ax.imshow(np.where(die, v, np.nan), cmap="inferno", vmin=0, vmax=6,
+                  interpolation="nearest")
+        ax.set_facecolor("#e8e8e8")
     else:
         v = np.abs(img[die]).max() or 1.0
         ax.imshow(np.where(die, img, np.nan), cmap="RdBu_r", vmin=-v, vmax=v,
@@ -124,7 +138,7 @@ def _panel(ax, img, title, kind, die=None):
     ax.set_yticks([])
 
 
-def figure_for_class(x, dens, rres, score, y, cls: int, path: Path, n=3):
+def figure_for_class(x, dens, cal, score, y, cls: int, path: Path, n=3):
     cases = select_cases(score, y, cls, n)
     groups = [("caught (top score)", cases["caught"]),
               ("MISSED (bottom score)", cases["missed"]),
@@ -140,11 +154,12 @@ def figure_for_class(x, dens, rres, score, y, cls: int, path: Path, n=3):
                 gname, NAMES[y[i]], fail_ratio(x[i][None])[0]), "wafer")
             die = x[i] > 0
             _panel(axes[r, 1], dens[i],
-                   "local fail density %dx%d (max=%.2f)" % (K_MAP, K_MAP, dens[i].max()),
+                   "density %dx%d (max %.2f)" % (K_MAP, K_MAP, dens[i].max()),
                    "density", die)
-            _panel(axes[r, 2], rres[i], "radial-template residual, smoothed", "res", die)
+            _panel(axes[r, 2], cal[i],
+                   "radius-calibrated surprisal", "surprisal", die)
             r += 1
-    fig.suptitle("%s — original (pad) coords. score = local density max %dx%d"
+    fig.suptitle("%s — original (pad) coords. score = radius-calibrated density max %dx%d"
                  % (NAMES[cls], K_SCORE, K_SCORE), fontsize=9)
     fig.tight_layout(rect=(0, 0, 1, 0.985))
     fig.savefig(path, dpi=110)
@@ -175,8 +190,8 @@ if __name__ == "__main__":
     trn = tr[y_all[tr] == 0]
     assert_one_class(y_all[trn])
     X = d["X"]
-    t_rad = fit_radial_template(np.ascontiguousarray(X[trn]), y=y_all[trn], n_bins=32,
-                                smoothing=1.0)
+    x_tr = np.ascontiguousarray(X[trn])
+    t_rad = fit_radial_template(x_tr, y=y_all[trn], n_bins=32, smoothing=1.0)
     log("반경 template 적합 (정상 %d장만). 전역 불량률 %.5f" % (len(trn), t_rad.global_rate))
     figure_radial_template(t_rad, FIG / "radial_template.png")
 
@@ -191,8 +206,13 @@ if __name__ == "__main__":
 
     dens = local_fail_density_map(x, k=K_MAP).astype(np.float32)
     rres = smooth_map(residual_map(x, t_rad, mode="nll"), x > 0, k=K_MAP).astype(np.float32)
-    score = local_fail_density_max(x, k=K_SCORE)
-    log("맵 2종 + 채점 완료")
+    v_tr = local_fail_density_map(x_tr, k=K_SCORE).astype(np.float32)
+    ref = fit_band_reference(v_tr, x_tr, y=y_all[trn], n_bands=32, seed=0)
+    del v_tr
+    cal = calibrate_map(local_fail_density_map(x, k=K_SCORE),
+                        band_index(x, 32), ref).astype(np.float32)
+    score = cal.reshape(len(cal), -1).max(1)
+    log("맵 3종 + 채점 완료 (점수 = 반경 보정 밀도의 최대)")
 
     meta = np.load("data/wm811k/cache/wm811k_64pad.npz", allow_pickle=True)
     np.savez_compressed(
@@ -204,14 +224,15 @@ if __name__ == "__main__":
         wafer=x,
         density_k5=dens.astype(np.float16),
         radial_residual_k5=rres.astype(np.float16),
-        score_density_max_k7=score.astype(np.float32),
+        radial_cal_k7=cal.astype(np.float16),
+        score_radial_cal_max_k7=score.astype(np.float32),
         radial_template=t_rad.p.astype(np.float32),
         classes=np.array(NAMES))
     log("맵 저장 완료 → %s" % (OUT / "o1_maps_pad.npz"))
 
     ysub = yte[keep_local]
     for cname in ("Scratch", "Center", "Loc", "Edge-Ring"):
-        figure_for_class(x, dens, rres, score, ysub, NAMES.index(cname),
+        figure_for_class(x, dens, cal, score, ysub, NAMES.index(cname),
                          FIG / ("cases_%s.png" % cname.lower().replace("-", "")))
         log("그림 저장: cases_%s.png" % cname.lower())
 
@@ -221,8 +242,9 @@ if __name__ == "__main__":
         "n_normal": int((ysub == 0).sum()),
         "coords": "pad (original size, centred), 64x64",
         "maps": {"density_k5": "창 5x5 불량 다이 비율, template 없음",
-                 "radial_residual_k5": "반경 template NLL 잔차를 5x5 평활"},
-        "ranking_score": "local fail density max 7x7 (AUPR 0.7147)",
+                 "radial_residual_k5": "반경 template NLL 잔차를 5x5 평활",
+                 "radial_cal_k7": "창 7x7 밀도의 반경 대역별 정상 백분위 (최선)"},
+        "ranking_score": "radius-calibrated density max 7x7 (AUPR 0.7407)",
         "note": "픽셀 단위 정답 없음 — 정성 평가 전용 (기획서 §9.3)",
     }, ensure_ascii=False, indent=2))
     log("완료")
