@@ -33,7 +33,10 @@
 그래도 **분할은 `SALT="ood_sealed_v1"` 과 `THRESHOLD=2500` 만으로 결정**되고
 그 두 상수는 `tests/test_a38_sealed_holdout.py` 로 박혀 있다.
 파일이 지워져도 `build_registry()` 가 **같은 lot** 을 다시 뽑는다.
-`sealed_lots.txt` 는 그 사실을 나중에 검증할 수 있게 남기는 사본이다.
+`sealed_lots.txt` 는 그 사실을 나중에 검증할 수 있게 남기는 사본이고,
+**`test_sealed_lots_match_the_list_committed_to_git` 가 매번 대조한다** —
+상수만 박으면 해시 방식을 바꿔도 통과하기 때문이다.
+(실제로 `SALT` 를 바꿔 보면 lot 1,200개 중 288개만 겹친다. 테스트가 판별한다.)
 
 **단 감사 로그는 복원되지 않는다.** `unseal_log.jsonl` 이 지워지면
 누가 언제 열었는지는 사라진다. 그래서 사이클마다 여기에 사본을 남긴다.

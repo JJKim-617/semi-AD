@@ -149,3 +149,27 @@ def test_assert_not_sealed_allows_a_clean_index_array(reg):
 def test_assert_not_sealed_also_guards_the_val_partition(reg):
     with pytest.raises(h.SealedHoldoutError):
         h.assert_not_sealed(reg["val_unseen"][:5])
+
+
+# --- 봉인이 시간이 지나도 같은 lot 인가 ---------------------------------------
+
+def test_sealed_lots_match_the_list_committed_to_git(reg):
+    """상수만 박으면 **해시 방식을 바꿔도 통과한다.** 실제 lot 목록을 박아야 봉인이 박힌다.
+
+    레지스트리 파일은 `result/`(심링크, git 밖)에 있어 기계가 바뀌면 사라진다.
+    분할 자체는 `SALT` 와 `THRESHOLD` 로 결정되므로 재생성되지만,
+    **재생성된 것이 원래 것과 같은지**는 git 에 남은 사본과 대조해야만 알 수 있다.
+    """
+    from pathlib import Path
+    want = [l.strip() for l in
+            Path("docs/research/ood_sealed_holdout/evidence/sealed_lots.txt")
+            .read_text().splitlines() if l.strip()]
+    assert len(want) == 1285
+    assert sorted(str(x) for x in reg["sealed_lots"]) == sorted(want)
+
+
+def test_a_legacy_full_test_index_is_flagged_as_contaminated(reg):
+    """봉인 이전 스크립트는 여전히 test 전수를 읽는다. 새 평가가 그러면 잡혀야 한다."""
+    sp = np.load("data/wm811k/cache/splits_v1.npz")
+    with pytest.raises(h.SealedHoldoutError):
+        h.assert_not_sealed(sp["test"], "공식 test 전수")
