@@ -230,6 +230,17 @@ train-none 이 387장, 22,602장에 218장뿐이다(웨이퍼당 0.016, 0.010).
 바닥 수치는 `tests/test_a21_ood_baseline_pin.py`(E0)와
 `tests/test_a24_local_density_pin.py`(국소 밀도)로 고정돼 있다 — 되돌아가면 테스트가 깨진다.
 
+**one-class 보장은 파이프라인 끝에서 확인한다**(`tests/test_a37_one_class_endtoend.py`).
+`assert_one_class` 는 fit 진입점에서 라벨을 검사할 뿐이라 **픽셀이 안 샜다는 보장은 아니다.**
+그래서 더 강한 성질을 박았다 — **train 의 결함 웨이퍼 픽셀을 통째로 망가뜨리거나
+행을 지워도 test 점수가 비트 단위로 같다.** 어딘가에서 `y==0` 필터를 빠뜨렸다면 깨진다.
+대조로 **train 의 정상을 망가뜨리면 점수가 바뀌는 것**도 같이 박았다
+(안 바뀌면 그건 보장이 아니라 상수 채점기다).
+
+**현재 최선 수치는 냉시작 재실행으로 재현을 확인했다** —
+`src/a33_fuse3_eval.py` 를 다시 돌려 AUROC 0.9698 / blocked AUPR 0.8325
+[0.8261, 0.8396] / FPR@95TPR 0.1719 / 고유값 3,953 이 그대로 나왔다.
+
 **주의**: `src/a26_ood_residual_export.py` 는 O1 template 시절 산출물이라 남겨만 뒀다.
 현행 국소화 산출물은 `a34` 다.
 
