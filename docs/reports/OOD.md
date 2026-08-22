@@ -171,6 +171,38 @@ Edge-Ring 이 낀 것은 **융합이 가장자리를 누른 대가**다(die k=7 
 → **웨이퍼맵만 쓰는 한 큰 이득은 안 남았다.** 학습이 고칠 수 있는 상한은
 놓친 결함의 49% 와 헛경보의 22% 언저리다. **O2/O3 의 기대치를 그만큼 낮춰 잡아야 한다.**
 
+## 재현 지도 — 어느 숫자가 어느 스크립트에서 나오는가
+
+전부 CPU 전용이고 `PY=/mnt/sdf/ryukimlee/miniconda3/envs/partfield/bin/python`,
+프로젝트 루트에서 상대 경로로 실행한다. 결정론적이라 같은 수치가 다시 나온다.
+
+| 숫자 | 스크립트 | 결과 |
+|---|---|---|
+| E0 자명한 스칼라 (0.3854 등) | `src/report_ood_operating_points.py` | `docs/research/ood_operating_points/evidence/` |
+| 운영 지점 표 · 동점 민감도 | `src/report_ood_operating_points.py` | 〃 |
+| 동점 관례 비교 (순서 대 블록) | `src/diag_ood_tie_convention.py` | 〃 `tie_convention.{txt,json}` |
+| O1 template 잔차 12 arm | `src/a23_ood_template_eval.py` | `result/ood/o1_template/` |
+| 짝지은 검정 · 클래스 판별 단서 | `src/diag_ood_paired.py` | `docs/research/ood_template/evidence/` |
+| 밀도 천장 (`none` 의 정체) | `src/diag_ood_density_ceiling.py` | 〃 `density_ceiling.txt` |
+| 뭉개기 48 arm | `src/a25_ood_residual_eval.py` | `result/ood/o1_pooling/` |
+| **빠진 대조군 (국소 밀도)** | `src/diag_ood_local_density_control.py` | `result/ood/o1_density_control/` |
+| 선 필터 포화 기작 | `src/diag_ood_line_saturation.py` | `docs/research/ood_line/evidence/` |
+| 반경 대역 보정 | `src/a30_radial_calibration_eval.py` | `result/ood/o1_radialcal/` |
+| 창 분모 축 (die 대 k²) | `src/a31_window_norm_eval.py` | `result/ood/o1_windownorm/` |
+| 〃 blocked 로 재판정 | `src/diag_ood_windownorm_blocked.py` | 〃 `paired_blocked.json` |
+| **온전 창 가드** | `src/a32_full_window_eval.py` | `result/ood/o1_fullwindow/` |
+| **현재 최선 (3-요소 융합)** | `src/a33_fuse3_eval.py` | `result/ood/o1_fuse3/` |
+| 클래스 정보 감사 (28쌍) | `src/a35_class_information.py` | `result/ood/o1_classinfo/` |
+| 선택 편향 감사 (lot 반쪽) | `src/a36_selection_risk.py` | `result/ood/o1_selection_risk/` |
+| 남은 오류 진단 | `src/diag_ood_residual_error.py` | `result/ood/o1_residual_error/` |
+| **국소화 맵 + 대표 사례 그림** | `src/a34_export_pipeline_maps.py` | `result/ood/o1_pipeline_maps/`, `docs/research/ood_pipeline_maps/evidence/` |
+
+바닥 수치는 `tests/test_a21_ood_baseline_pin.py`(E0)와
+`tests/test_a24_local_density_pin.py`(국소 밀도)로 고정돼 있다 — 되돌아가면 테스트가 깨진다.
+
+**주의**: `src/a26_ood_residual_export.py` 는 O1 template 시절 산출물이라 남겨만 뒀다.
+현행 국소화 산출물은 `a34` 다.
+
 ## 미완 — 다음에 뭘 해야 하는가
 
 1. **봉인 홀드아웃을 만든다.** 위 감사가 못 건드리는 편향이 남아 있다. **1순위.**
