@@ -1,0 +1,1477 @@
+{
+  "test_dev": {
+    "n": 87695,
+    "n_defect": 5799,
+    "prevalence": 0.06612691715605222,
+    "arms": {
+      "채택 fuse3 (A+B+C)": {
+        "aupr_blocked": 0.8303579701116065,
+        "auroc": 0.9679935671170261,
+        "aupr_order": 0.8307106494815896,
+        "fpr_at_95tpr": 0.18767705382436262,
+        "n_unique": 3647,
+        "aupr_blocked_ci95": [
+          0.8228653092495906,
+          0.8377903437451242
+        ],
+        "operating": [
+          {
+            "target_recall": 0.5,
+            "threshold": 34.70295278457226,
+            "recall": 0.5000862217623728,
+            "precision": 0.9483322432962721,
+            "true_positives": 2900,
+            "false_positives": 158,
+            "false_negatives": 2899,
+            "n_tied_at_threshold": 7
+          },
+          {
+            "target_recall": 0.8,
+            "threshold": 20.287557259861792,
+            "recall": 0.8001379548197965,
+            "precision": 0.681050932041685,
+            "true_positives": 4640,
+            "false_positives": 2173,
+            "false_negatives": 1159,
+            "n_tied_at_threshold": 2
+          },
+          {
+            "target_recall": 0.95,
+            "threshold": 8.578223386798832,
+            "recall": 0.9501638213485084,
+            "precision": 0.2638888888888889,
+            "true_positives": 5510,
+            "false_positives": 15370,
+            "false_negatives": 289,
+            "n_tied_at_threshold": 23
+          }
+        ],
+        "per_class": {
+          "Center": {
+            "n": 618,
+            "auroc": 0.9376830702164526
+          },
+          "Donut": {
+            "n": 103,
+            "auroc": 0.9982639596893431
+          },
+          "Edge-Loc": {
+            "n": 2000,
+            "auroc": 0.9797601103839015
+          },
+          "Edge-Ring": {
+            "n": 856,
+            "auroc": 0.9532981310237101
+          },
+          "Loc": {
+            "n": 1451,
+            "auroc": 0.9828213694166382
+          },
+          "Random": {
+            "n": 184,
+            "auroc": 0.9998553971951701
+          },
+          "Scratch": {
+            "n": 517,
+            "auroc": 0.9197190511379343
+          },
+          "Near-full": {
+            "n": 70,
+            "auroc": 1.0
+          }
+        }
+      },
+      "채택 A+B (6차)": {
+        "aupr_blocked": 0.8048256094302504,
+        "auroc": 0.9561977854879029,
+        "aupr_order": 0.8057673495453046,
+        "fpr_at_95tpr": 0.2840920191462343,
+        "n_unique": 1345,
+        "aupr_blocked_ci95": [
+          0.7962225758607121,
+          0.813391459576769
+        ],
+        "operating": [
+          {
+            "target_recall": 0.5,
+            "threshold": 21.689177178811605,
+            "recall": 0.5000862217623728,
+            "precision": 0.9330759330759331,
+            "true_positives": 2900,
+            "false_positives": 208,
+            "false_negatives": 2899,
+            "n_tied_at_threshold": 27
+          },
+          {
+            "target_recall": 0.8,
+            "threshold": 11.334437739477625,
+            "recall": 0.8001379548197965,
+            "precision": 0.6247475427494278,
+            "true_positives": 4640,
+            "false_positives": 2787,
+            "false_negatives": 1159,
+            "n_tied_at_threshold": 28
+          },
+          {
+            "target_recall": 0.95,
+            "threshold": 3.4205735833221222,
+            "recall": 0.9501638213485084,
+            "precision": 0.19147901028634973,
+            "true_positives": 5510,
+            "false_positives": 23266,
+            "false_negatives": 289,
+            "n_tied_at_threshold": 6
+          }
+        ],
+        "per_class": {
+          "Center": {
+            "n": 618,
+            "auroc": 0.8597777080442699
+          },
+          "Donut": {
+            "n": 103,
+            "auroc": 0.9983127428488512
+          },
+          "Edge-Loc": {
+            "n": 2000,
+            "auroc": 0.9759864218032627
+          },
+          "Edge-Ring": {
+            "n": 856,
+            "auroc": 0.9566509915356518
+          },
+          "Loc": {
+            "n": 1451,
+            "auroc": 0.9683441824015492
+          },
+          "Random": {
+            "n": 184,
+            "auroc": 0.9998456087997077
+          },
+          "Scratch": {
+            "n": 517,
+            "auroc": 0.9302070191774102
+          },
+          "Near-full": {
+            "n": 70,
+            "auroc": 1.0
+          }
+        }
+      },
+      "채택 A 단독 (5차)": {
+        "aupr_blocked": 0.7612680648626021,
+        "auroc": 0.947537768787311,
+        "aupr_order": 0.7649001293270268,
+        "fpr_at_95tpr": 0.3306877014750415,
+        "n_unique": 279,
+        "aupr_blocked_ci95": [
+          0.7513521927753408,
+          0.7706809280593498
+        ],
+        "operating": [
+          {
+            "target_recall": 0.5,
+            "threshold": 0.9999575001062497,
+            "recall": 0.5000862217623728,
+            "precision": 0.8901166359729895,
+            "true_positives": 2900,
+            "false_positives": 358,
+            "false_negatives": 2899,
+            "n_tied_at_threshold": 447
+          },
+          {
+            "target_recall": 0.8,
+            "threshold": 0.9992550018624954,
+            "recall": 0.8001379548197965,
+            "precision": 0.5093863212207707,
+            "true_positives": 4640,
+            "false_positives": 4469,
+            "false_negatives": 1159,
+            "n_tied_at_threshold": 435
+          },
+          {
+            "target_recall": 0.95,
+            "threshold": 0.9899854980244758,
+            "recall": 0.9501638213485084,
+            "precision": 0.16905989199803634,
+            "true_positives": 5510,
+            "false_positives": 27082,
+            "false_negatives": 289,
+            "n_tied_at_threshold": 47
+          }
+        ],
+        "per_class": {
+          "Center": {
+            "n": 618,
+            "auroc": 0.8710202010885698
+          },
+          "Donut": {
+            "n": 103,
+            "auroc": 0.9963317790690727
+          },
+          "Edge-Loc": {
+            "n": 2000,
+            "auroc": 0.9712379603399434
+          },
+          "Edge-Ring": {
+            "n": 856,
+            "auroc": 0.9433239610255633
+          },
+          "Loc": {
+            "n": 1451,
+            "auroc": 0.976724526718158
+          },
+          "Random": {
+            "n": 184,
+            "auroc": 0.9995602190052283
+          },
+          "Scratch": {
+            "n": 517,
+            "auroc": 0.8370744756429299
+          },
+          "Near-full": {
+            "n": 70,
+            "auroc": 0.9997679984370421
+          }
+        }
+      },
+      "채택 die k=7 (진짜 바닥)": {
+        "aupr_blocked": 0.704313976520699,
+        "auroc": 0.9184786312791733,
+        "aupr_order": 0.7076237727785301,
+        "fpr_at_95tpr": 0.4834790465956823,
+        "n_unique": 544,
+        "aupr_blocked_ci95": [
+          0.6941809182769675,
+          0.7146100573351732
+        ],
+        "operating": [
+          {
+            "target_recall": 0.5,
+            "threshold": 0.5769230769230769,
+            "recall": 0.5000862217623728,
+            "precision": 0.858242083456644,
+            "true_positives": 2900,
+            "false_positives": 479,
+            "false_negatives": 2899,
+            "n_tied_at_threshold": 173
+          },
+          {
+            "target_recall": 0.8,
+            "threshold": 0.4166666666666667,
+            "recall": 0.8001379548197965,
+            "precision": 0.3185937929140346,
+            "true_positives": 4640,
+            "false_positives": 9924,
+            "false_negatives": 1159,
+            "n_tied_at_threshold": 1586
+          },
+          {
+            "target_recall": 0.95,
+            "threshold": 0.30612244897959184,
+            "recall": 0.9501638213485084,
+            "precision": 0.12215940583083915,
+            "true_positives": 5510,
+            "false_positives": 39595,
+            "false_negatives": 289,
+            "n_tied_at_threshold": 253
+          }
+        ],
+        "per_class": {
+          "Center": {
+            "n": 618,
+            "auroc": 0.7429298205348768
+          },
+          "Donut": {
+            "n": 103,
+            "auroc": 0.9842554871866853
+          },
+          "Edge-Loc": {
+            "n": 2000,
+            "auroc": 0.9839468716420826
+          },
+          "Edge-Ring": {
+            "n": 856,
+            "auroc": 0.9687155863397298
+          },
+          "Loc": {
+            "n": 1451,
+            "auroc": 0.9135122804892754
+          },
+          "Random": {
+            "n": 184,
+            "auroc": 0.9991848755155001
+          },
+          "Scratch": {
+            "n": 517,
+            "auroc": 0.75295554592143
+          },
+          "Near-full": {
+            "n": 70,
+            "auroc": 1.0
+          }
+        }
+      },
+      "E0 불량 다이 비율 (원 바닥)": {
+        "aupr_blocked": 0.38231620793760035,
+        "auroc": 0.7888628654197806,
+        "aupr_order": 0.38250851440800226,
+        "fpr_at_95tpr": 0.7426370030282309,
+        "n_unique": 7133,
+        "aupr_blocked_ci95": [
+          0.3682878992738532,
+          0.3955974907185809
+        ],
+        "operating": [
+          {
+            "target_recall": 0.5,
+            "threshold": 0.14768683274021352,
+            "recall": 0.5000862217623728,
+            "precision": 0.24345198119543318,
+            "true_positives": 2900,
+            "false_positives": 9012,
+            "false_negatives": 2899,
+            "n_tied_at_threshold": 8
+          },
+          {
+            "target_recall": 0.8,
+            "threshold": 0.09786476868327403,
+            "recall": 0.8001379548197965,
+            "precision": 0.12059152220807236,
+            "true_positives": 4640,
+            "false_positives": 33837,
+            "false_negatives": 1159,
+            "n_tied_at_threshold": 151
+          },
+          {
+            "target_recall": 0.95,
+            "threshold": 0.06001348617666891,
+            "recall": 0.9501638213485084,
+            "precision": 0.08307075336579776,
+            "true_positives": 5510,
+            "false_positives": 60819,
+            "false_negatives": 289,
+            "n_tied_at_threshold": 16
+          }
+        ],
+        "per_class": {
+          "Center": {
+            "n": 618,
+            "auroc": 0.693965240625651
+          },
+          "Donut": {
+            "n": 103,
+            "auroc": 0.9781230943152148
+          },
+          "Edge-Loc": {
+            "n": 2000,
+            "auroc": 0.7685141520953405
+          },
+          "Edge-Ring": {
+            "n": 856,
+            "auroc": 0.9198583737728909
+          },
+          "Loc": {
+            "n": 1451,
+            "auroc": 0.7924700282155102
+          },
+          "Random": {
+            "n": 184,
+            "auroc": 0.9994828740905751
+          },
+          "Scratch": {
+            "n": 517,
+            "auroc": 0.61275169677861
+          },
+          "Near-full": {
+            "n": 70,
+            "auroc": 1.0
+          }
+        }
+      },
+      "기각 선 L=7 가드없음 (3차)": {
+        "aupr_blocked": 0.08859268173444829,
+        "auroc": 0.6346518343842079,
+        "aupr_order": 0.07953371216589128,
+        "fpr_at_95tpr": 0.698349125720426,
+        "n_unique": 13,
+        "aupr_blocked_ci95": [
+          0.08657916580664263,
+          0.0909526967882205
+        ],
+        "operating": [
+          {
+            "target_recall": 0.5,
+            "threshold": 1.0,
+            "recall": 0.5000862217623728,
+            "precision": 0.07826626723882008,
+            "true_positives": 2900,
+            "false_positives": 34153,
+            "false_negatives": 2899,
+            "n_tied_at_threshold": 62913
+          },
+          {
+            "target_recall": 0.8,
+            "threshold": 1.0,
+            "recall": 0.8001379548197965,
+            "precision": 0.08919303371650456,
+            "true_positives": 4640,
+            "false_positives": 47382,
+            "false_negatives": 1159,
+            "n_tied_at_threshold": 62913
+          },
+          {
+            "target_recall": 0.95,
+            "threshold": 1.0,
+            "recall": 0.9501638213485084,
+            "precision": 0.08787598481707122,
+            "true_positives": 5510,
+            "false_positives": 57192,
+            "false_negatives": 289,
+            "n_tied_at_threshold": 62913
+          }
+        ],
+        "per_class": {
+          "Center": {
+            "n": 618,
+            "auroc": 0.570639694420234
+          },
+          "Donut": {
+            "n": 103,
+            "auroc": 0.6500500634951646
+          },
+          "Edge-Loc": {
+            "n": 2000,
+            "auroc": 0.6500500634951646
+          },
+          "Edge-Ring": {
+            "n": 856,
+            "auroc": 0.6500500634951646
+          },
+          "Loc": {
+            "n": 1451,
+            "auroc": 0.6286155982269153
+          },
+          "Random": {
+            "n": 184,
+            "auroc": 0.6500500634951646
+          },
+          "Scratch": {
+            "n": 517,
+            "auroc": 0.6324150278628611
+          },
+          "Near-full": {
+            "n": 70,
+            "auroc": 0.6500500634951646
+          }
+        }
+      }
+    }
+  },
+  "test_sealed": {
+    "n": 30900,
+    "n_defect": 2095,
+    "prevalence": 0.06779935275080906,
+    "arms": {
+      "채택 fuse3 (A+B+C)": {
+        "aupr_blocked": 0.8384437157121263,
+        "auroc": 0.974835448135123,
+        "aupr_order": 0.8401244033293637,
+        "fpr_at_95tpr": 0.11925013018573165,
+        "n_unique": 2657,
+        "aupr_blocked_ci95": [
+          0.8244157885334398,
+          0.8518533243182377
+        ],
+        "operating": [
+          {
+            "target_recall": 0.5,
+            "threshold": 35.98513442178002,
+            "recall": 0.5002386634844869,
+            "precision": 0.9415992812219227,
+            "true_positives": 1048,
+            "false_positives": 65,
+            "false_negatives": 1047,
+            "n_tied_at_threshold": 12
+          },
+          {
+            "target_recall": 0.8,
+            "threshold": 21.72992796452387,
+            "recall": 0.8,
+            "precision": 0.7255411255411255,
+            "true_positives": 1676,
+            "false_positives": 634,
+            "false_negatives": 419,
+            "n_tied_at_threshold": 4
+          },
+          {
+            "target_recall": 0.95,
+            "threshold": 11.09763593959005,
+            "recall": 0.9503579952267303,
+            "precision": 0.3669369701437523,
+            "true_positives": 1991,
+            "false_positives": 3435,
+            "false_negatives": 104,
+            "n_tied_at_threshold": 11
+          }
+        ],
+        "per_class": {
+          "Center": {
+            "n": 214,
+            "auroc": 0.9515080455593282
+          },
+          "Donut": {
+            "n": 43,
+            "auroc": 0.9992536018052421
+          },
+          "Edge-Loc": {
+            "n": 772,
+            "auroc": 0.9850323283324625
+          },
+          "Edge-Ring": {
+            "n": 270,
+            "auroc": 0.9564680771728159
+          },
+          "Loc": {
+            "n": 522,
+            "auroc": 0.9834975369458128
+          },
+          "Random": {
+            "n": 73,
+            "auroc": 0.9990831119977743
+          },
+          "Scratch": {
+            "n": 176,
+            "auroc": 0.9413682914897982
+          },
+          "Near-full": {
+            "n": 25,
+            "auroc": 0.9999479257073425
+          }
+        }
+      },
+      "채택 A+B (6차)": {
+        "aupr_blocked": 0.8103737320824246,
+        "auroc": 0.9642821556685788,
+        "aupr_order": 0.8136893029369214,
+        "fpr_at_95tpr": 0.18014233639993057,
+        "n_unique": 1161,
+        "aupr_blocked_ci95": [
+          0.7975260691872776,
+          0.826445071293103
+        ],
+        "operating": [
+          {
+            "target_recall": 0.5,
+            "threshold": 22.815206395649874,
+            "recall": 0.5002386634844869,
+            "precision": 0.9274336283185841,
+            "true_positives": 1048,
+            "false_positives": 82,
+            "false_negatives": 1047,
+            "n_tied_at_threshold": 4
+          },
+          {
+            "target_recall": 0.8,
+            "threshold": 12.037742106390322,
+            "recall": 0.8,
+            "precision": 0.6478546579049091,
+            "true_positives": 1676,
+            "false_positives": 911,
+            "false_negatives": 419,
+            "n_tied_at_threshold": 8
+          },
+          {
+            "target_recall": 0.95,
+            "threshold": 5.123560653470108,
+            "recall": 0.9503579952267303,
+            "precision": 0.2772980501392758,
+            "true_positives": 1991,
+            "false_positives": 5189,
+            "false_negatives": 104,
+            "n_tied_at_threshold": 395
+          }
+        ],
+        "per_class": {
+          "Center": {
+            "n": 214,
+            "auroc": 0.8818550290626465
+          },
+          "Donut": {
+            "n": 43,
+            "auroc": 0.9990182582965651
+          },
+          "Edge-Loc": {
+            "n": 772,
+            "auroc": 0.9808734225941272
+          },
+          "Edge-Ring": {
+            "n": 270,
+            "auroc": 0.9592546947224955
+          },
+          "Loc": {
+            "n": 522,
+            "auroc": 0.9709932888673409
+          },
+          "Random": {
+            "n": 73,
+            "auroc": 0.9991891628403554
+          },
+          "Scratch": {
+            "n": 176,
+            "auroc": 0.9515147898881192
+          },
+          "Near-full": {
+            "n": 25,
+            "auroc": 0.999895851414685
+          }
+        }
+      },
+      "채택 A 단독 (5차)": {
+        "aupr_blocked": 0.7739212934796543,
+        "auroc": 0.955737025236354,
+        "aupr_order": 0.7844072457998437,
+        "fpr_at_95tpr": 0.26307932650581495,
+        "n_unique": 278,
+        "aupr_blocked_ci95": [
+          0.7543295448593716,
+          0.7901701385478973
+        ],
+        "operating": [
+          {
+            "target_recall": 0.5,
+            "threshold": 0.9999575001062497,
+            "recall": 0.5002386634844869,
+            "precision": 0.9026701119724375,
+            "true_positives": 1048,
+            "false_positives": 113,
+            "false_negatives": 1047,
+            "n_tied_at_threshold": 172
+          },
+          {
+            "target_recall": 0.8,
+            "threshold": 0.9995975010062474,
+            "recall": 0.8,
+            "precision": 0.5958051901884109,
+            "true_positives": 1676,
+            "false_positives": 1137,
+            "false_negatives": 419,
+            "n_tied_at_threshold": 161
+          },
+          {
+            "target_recall": 0.95,
+            "threshold": 0.9922500193749516,
+            "recall": 0.9503579952267303,
+            "precision": 0.20806771867488766,
+            "true_positives": 1991,
+            "false_positives": 7578,
+            "false_negatives": 104,
+            "n_tied_at_threshold": 190
+          }
+        ],
+        "per_class": {
+          "Center": {
+            "n": 214,
+            "auroc": 0.8995061864584127
+          },
+          "Donut": {
+            "n": 43,
+            "auroc": 0.9983360446950829
+          },
+          "Edge-Loc": {
+            "n": 772,
+            "auroc": 0.9756560101738239
+          },
+          "Edge-Ring": {
+            "n": 270,
+            "auroc": 0.9440318360366963
+          },
+          "Loc": {
+            "n": 522,
+            "auroc": 0.9785164945155728
+          },
+          "Random": {
+            "n": 73,
+            "auroc": 0.9985214705399795
+          },
+          "Scratch": {
+            "n": 176,
+            "auroc": 0.8527746327184359
+          },
+          "Near-full": {
+            "n": 25,
+            "auroc": 0.9994098246832147
+          }
+        }
+      },
+      "채택 die k=7 (진짜 바닥)": {
+        "aupr_blocked": 0.7247771690285681,
+        "auroc": 0.9265635648146806,
+        "aupr_order": 0.7272850879834812,
+        "fpr_at_95tpr": 0.4572470057281722,
+        "n_unique": 453,
+        "aupr_blocked_ci95": [
+          0.7081999794573633,
+          0.7422999665821904
+        ],
+        "operating": [
+          {
+            "target_recall": 0.5,
+            "threshold": 0.5833333333333334,
+            "recall": 0.5002386634844869,
+            "precision": 0.8733333333333333,
+            "true_positives": 1048,
+            "false_positives": 152,
+            "false_negatives": 1047,
+            "n_tied_at_threshold": 71
+          },
+          {
+            "target_recall": 0.8,
+            "threshold": 0.44,
+            "recall": 0.8,
+            "precision": 0.415159772108001,
+            "true_positives": 1676,
+            "false_positives": 2361,
+            "false_negatives": 419,
+            "n_tied_at_threshold": 409
+          },
+          {
+            "target_recall": 0.95,
+            "threshold": 0.3103448275862069,
+            "recall": 0.9503579952267303,
+            "precision": 0.13131512993008837,
+            "true_positives": 1991,
+            "false_positives": 13171,
+            "false_negatives": 104,
+            "n_tied_at_threshold": 191
+          }
+        ],
+        "per_class": {
+          "Center": {
+            "n": 214,
+            "auroc": 0.7530854423962611
+          },
+          "Donut": {
+            "n": 43,
+            "auroc": 0.9934136111705413
+          },
+          "Edge-Loc": {
+            "n": 772,
+            "auroc": 0.9857083272999704
+          },
+          "Edge-Ring": {
+            "n": 270,
+            "auroc": 0.9707265328164477
+          },
+          "Loc": {
+            "n": 522,
+            "auroc": 0.9195556925581646
+          },
+          "Random": {
+            "n": 73,
+            "auroc": 0.9977365516355846
+          },
+          "Scratch": {
+            "n": 176,
+            "auroc": 0.7748194166101213
+          },
+          "Near-full": {
+            "n": 25,
+            "auroc": 0.9999819475785454
+          }
+        }
+      },
+      "E0 불량 다이 비율 (원 바닥)": {
+        "aupr_blocked": 0.39385258647854177,
+        "auroc": 0.792741199879529,
+        "aupr_order": 0.3940639569592608,
+        "fpr_at_95tpr": 0.7337962159347335,
+        "n_unique": 4438,
+        "aupr_blocked_ci95": [
+          0.3729354797338452,
+          0.4131523326263948
+        ],
+        "operating": [
+          {
+            "target_recall": 0.5,
+            "threshold": 0.15217391304347827,
+            "recall": 0.5002386634844869,
+            "precision": 0.2638469284994965,
+            "true_positives": 1048,
+            "false_positives": 2924,
+            "false_negatives": 1047,
+            "n_tied_at_threshold": 3
+          },
+          {
+            "target_recall": 0.8,
+            "threshold": 0.09845132743362832,
+            "recall": 0.8,
+            "precision": 0.12122965641952983,
+            "true_positives": 1676,
+            "false_positives": 12149,
+            "false_negatives": 419,
+            "n_tied_at_threshold": 1
+          },
+          {
+            "target_recall": 0.95,
+            "threshold": 0.062342038753159225,
+            "recall": 0.9503579952267303,
+            "precision": 0.08608612936700104,
+            "true_positives": 1991,
+            "false_positives": 21137,
+            "false_negatives": 104,
+            "n_tied_at_threshold": 8
+          }
+        ],
+        "per_class": {
+          "Center": {
+            "n": 214,
+            "auroc": 0.7026919651475357
+          },
+          "Donut": {
+            "n": 43,
+            "auroc": 0.9891124360677046
+          },
+          "Edge-Loc": {
+            "n": 772,
+            "auroc": 0.7583989133651056
+          },
+          "Edge-Ring": {
+            "n": 270,
+            "auroc": 0.9290215176120401
+          },
+          "Loc": {
+            "n": 522,
+            "auroc": 0.8074827366736698
+          },
+          "Random": {
+            "n": 73,
+            "auroc": 0.999735586240022
+          },
+          "Scratch": {
+            "n": 176,
+            "auroc": 0.6368093252434078
+          },
+          "Near-full": {
+            "n": 25,
+            "auroc": 1.0
+          }
+        }
+      },
+      "기각 선 L=7 가드없음 (3차)": {
+        "aupr_blocked": 0.09046557259829106,
+        "auroc": 0.6337905486608787,
+        "aupr_order": 0.0826406964845532,
+        "fpr_at_95tpr": 0.7051206387779899,
+        "n_unique": 13,
+        "aupr_blocked_ci95": [
+          0.08678222109647302,
+          0.09415341852351534
+        ],
+        "operating": [
+          {
+            "target_recall": 0.5,
+            "threshold": 1.0,
+            "recall": 0.5002386634844869,
+            "precision": 0.0791839818662637,
+            "true_positives": 1048,
+            "false_positives": 12187,
+            "false_negatives": 1047,
+            "n_tied_at_threshold": 22435
+          },
+          {
+            "target_recall": 0.8,
+            "threshold": 1.0,
+            "recall": 0.8,
+            "precision": 0.09303874764072388,
+            "true_positives": 1676,
+            "false_positives": 16338,
+            "false_negatives": 419,
+            "n_tied_at_threshold": 22435
+          },
+          {
+            "target_recall": 0.95,
+            "threshold": 1.0,
+            "recall": 0.9503579952267303,
+            "precision": 0.08927450452874182,
+            "true_positives": 1991,
+            "false_positives": 20311,
+            "false_negatives": 104,
+            "n_tied_at_threshold": 22435
+          }
+        ],
+        "per_class": {
+          "Center": {
+            "n": 214,
+            "auroc": 0.5810425240944994
+          },
+          "Donut": {
+            "n": 43,
+            "auroc": 0.6458774518312793
+          },
+          "Edge-Loc": {
+            "n": 772,
+            "auroc": 0.6458774518312793
+          },
+          "Edge-Ring": {
+            "n": 270,
+            "auroc": 0.6458774518312793
+          },
+          "Loc": {
+            "n": 522,
+            "auroc": 0.6274384635489927
+          },
+          "Random": {
+            "n": 73,
+            "auroc": 0.6458774518312793
+          },
+          "Scratch": {
+            "n": 176,
+            "auroc": 0.6355238397689795
+          },
+          "Near-full": {
+            "n": 25,
+            "auroc": 0.6458774518312793
+          }
+        }
+      }
+    }
+  },
+  "val_unseen": {
+    "n": 11132,
+    "n_defect": 3551,
+    "prevalence": 0.3189902982393101,
+    "arms": {
+      "채택 fuse3 (A+B+C)": {
+        "aupr_blocked": 0.9709816515915308,
+        "auroc": 0.9727600322598727,
+        "aupr_order": 0.9710271587754706,
+        "fpr_at_95tpr": 0.08191531460229522,
+        "n_unique": 1764,
+        "aupr_blocked_ci95": [
+          0.9670212848258871,
+          0.9749755130037747
+        ],
+        "operating": [
+          {
+            "target_recall": 0.5,
+            "threshold": 43.51806615850562,
+            "recall": 0.5001408054069276,
+            "precision": 0.9971925884334644,
+            "true_positives": 1776,
+            "false_positives": 5,
+            "false_negatives": 1775,
+            "n_tied_at_threshold": 10
+          },
+          {
+            "target_recall": 0.8,
+            "threshold": 35.942122011338284,
+            "recall": 0.800056322162771,
+            "precision": 0.9950963222416812,
+            "true_positives": 2841,
+            "false_positives": 14,
+            "false_negatives": 710,
+            "n_tied_at_threshold": 6
+          },
+          {
+            "target_recall": 0.95,
+            "threshold": 18.3569196307432,
+            "recall": 0.9501548859476204,
+            "precision": 0.8445556946182728,
+            "true_positives": 3374,
+            "false_positives": 621,
+            "false_negatives": 177,
+            "n_tied_at_threshold": 1
+          }
+        ],
+        "per_class": {
+          "Center": {
+            "n": 682,
+            "auroc": 0.9961232955826826
+          },
+          "Donut": {
+            "n": 82,
+            "auroc": 0.9968872759562578
+          },
+          "Edge-Loc": {
+            "n": 502,
+            "auroc": 0.9943601139565206
+          },
+          "Edge-Ring": {
+            "n": 1774,
+            "auroc": 0.9631200620669933
+          },
+          "Loc": {
+            "n": 282,
+            "auroc": 0.9799910376912794
+          },
+          "Random": {
+            "n": 128,
+            "auroc": 0.999887671481335
+          },
+          "Scratch": {
+            "n": 92,
+            "auroc": 0.7835127005155911
+          },
+          "Near-full": {
+            "n": 9,
+            "auroc": 1.0
+          }
+        },
+        "aupr_blocked_prevalence_matched": {
+          "n_defect_kept": 541,
+          "prevalence": 0.06660920955429697,
+          "mean": 0.9290588153399506,
+          "ci95": [
+            0.9126471166768656,
+            0.9442107509569813
+          ]
+        }
+      },
+      "채택 A+B (6차)": {
+        "aupr_blocked": 0.9673878715724992,
+        "auroc": 0.9692506882674531,
+        "aupr_order": 0.9675239744136168,
+        "fpr_at_95tpr": 0.13375544123466562,
+        "n_unique": 873,
+        "aupr_blocked_ci95": [
+          0.9626345325569471,
+          0.9708471171379155
+        ],
+        "operating": [
+          {
+            "target_recall": 0.5,
+            "threshold": 30.75727366653073,
+            "recall": 0.5001408054069276,
+            "precision": 0.9971925884334644,
+            "true_positives": 1776,
+            "false_positives": 5,
+            "false_negatives": 1775,
+            "n_tied_at_threshold": 73
+          },
+          {
+            "target_recall": 0.8,
+            "threshold": 24.25757016100536,
+            "recall": 0.800056322162771,
+            "precision": 0.9954449894884373,
+            "true_positives": 2841,
+            "false_positives": 13,
+            "false_negatives": 710,
+            "n_tied_at_threshold": 19
+          },
+          {
+            "target_recall": 0.95,
+            "threshold": 9.566711368780739,
+            "recall": 0.9501548859476204,
+            "precision": 0.768915223336372,
+            "true_positives": 3374,
+            "false_positives": 1014,
+            "false_negatives": 177,
+            "n_tied_at_threshold": 5
+          }
+        ],
+        "per_class": {
+          "Center": {
+            "n": 682,
+            "auroc": 0.9878780335620654
+          },
+          "Donut": {
+            "n": 82,
+            "auroc": 0.9979151987800052
+          },
+          "Edge-Loc": {
+            "n": 502,
+            "auroc": 0.9907114714864326
+          },
+          "Edge-Ring": {
+            "n": 1774,
+            "auroc": 0.9692080881608282
+          },
+          "Loc": {
+            "n": 282,
+            "auroc": 0.9230773368658676
+          },
+          "Random": {
+            "n": 128,
+            "auroc": 0.9998789119179528
+          },
+          "Scratch": {
+            "n": 92,
+            "auroc": 0.7852533220924164
+          },
+          "Near-full": {
+            "n": 9,
+            "auroc": 0.9999340456404169
+          }
+        },
+        "aupr_blocked_prevalence_matched": {
+          "n_defect_kept": 541,
+          "prevalence": 0.06660920955429697,
+          "mean": 0.9232398925716764,
+          "ci95": [
+            0.9080278591948644,
+            0.9409596661229725
+          ]
+        }
+      },
+      "채택 A 단독 (5차)": {
+        "aupr_blocked": 0.9312362413746864,
+        "auroc": 0.9464493504879304,
+        "aupr_order": 0.931875064860003,
+        "fpr_at_95tpr": 0.28769291650178075,
+        "n_unique": 241,
+        "aupr_blocked_ci95": [
+          0.9246131921117383,
+          0.9369842809397981
+        ],
+        "operating": [
+          {
+            "target_recall": 0.5,
+            "threshold": 0.9999850000374999,
+            "recall": 0.5001408054069276,
+            "precision": 0.9944008958566629,
+            "true_positives": 1776,
+            "false_positives": 10,
+            "false_negatives": 1775,
+            "n_tied_at_threshold": 281
+          },
+          {
+            "target_recall": 0.8,
+            "threshold": 0.999837500406249,
+            "recall": 0.800056322162771,
+            "precision": 0.8950850661625709,
+            "true_positives": 2841,
+            "false_positives": 333,
+            "false_negatives": 710,
+            "n_tied_at_threshold": 97
+          },
+          {
+            "target_recall": 0.95,
+            "threshold": 0.9967150082124795,
+            "recall": 0.9501548859476204,
+            "precision": 0.6073807380738074,
+            "true_positives": 3374,
+            "false_positives": 2181,
+            "false_negatives": 177,
+            "n_tied_at_threshold": 247
+          }
+        ],
+        "per_class": {
+          "Center": {
+            "n": 682,
+            "auroc": 0.992046503819357
+          },
+          "Donut": {
+            "n": 82,
+            "auroc": 0.988908407089611
+          },
+          "Edge-Loc": {
+            "n": 502,
+            "auroc": 0.9903727656318402
+          },
+          "Edge-Ring": {
+            "n": 1774,
+            "auroc": 0.9241263501125091
+          },
+          "Loc": {
+            "n": 282,
+            "auroc": 0.9553339301968995
+          },
+          "Random": {
+            "n": 128,
+            "auroc": 0.9998041979949874
+          },
+          "Scratch": {
+            "n": 92,
+            "auroc": 0.6546765942315743
+          },
+          "Near-full": {
+            "n": 9,
+            "auroc": 0.9998680912808336
+          }
+        },
+        "aupr_blocked_prevalence_matched": {
+          "n_defect_kept": 541,
+          "prevalence": 0.06660920955429697,
+          "mean": 0.8113167075042023,
+          "ci95": [
+            0.7882613415880482,
+            0.8339578258638672
+          ]
+        }
+      },
+      "채택 die k=7 (진짜 바닥)": {
+        "aupr_blocked": 0.9296639060690071,
+        "auroc": 0.9385066142508742,
+        "aupr_order": 0.9323884239163707,
+        "fpr_at_95tpr": 0.5668117662577496,
+        "n_unique": 398,
+        "aupr_blocked_ci95": [
+          0.9236264292712779,
+          0.935804231048175
+        ],
+        "operating": [
+          {
+            "target_recall": 0.5,
+            "threshold": 0.6326530612244898,
+            "recall": 0.5001408054069276,
+            "precision": 0.9899665551839465,
+            "true_positives": 1776,
+            "false_positives": 18,
+            "false_negatives": 1775,
+            "n_tied_at_threshold": 25
+          },
+          {
+            "target_recall": 0.8,
+            "threshold": 0.5416666666666666,
+            "recall": 0.800056322162771,
+            "precision": 0.9504851120776179,
+            "true_positives": 2841,
+            "false_positives": 148,
+            "false_negatives": 710,
+            "n_tied_at_threshold": 136
+          },
+          {
+            "target_recall": 0.95,
+            "threshold": 0.34615384615384615,
+            "recall": 0.9501548859476204,
+            "precision": 0.43983835223569284,
+            "true_positives": 3374,
+            "false_positives": 4297,
+            "false_negatives": 177,
+            "n_tied_at_threshold": 170
+          }
+        ],
+        "per_class": {
+          "Center": {
+            "n": 682,
+            "auroc": 0.9615055736269211
+          },
+          "Donut": {
+            "n": 82,
+            "auroc": 0.9800729358698415
+          },
+          "Edge-Loc": {
+            "n": 502,
+            "auroc": 0.9944288273630186
+          },
+          "Edge-Ring": {
+            "n": 1774,
+            "auroc": 0.9456790376820232
+          },
+          "Loc": {
+            "n": 282,
+            "auroc": 0.8364217280790629
+          },
+          "Random": {
+            "n": 128,
+            "auroc": 0.9994759720023744
+          },
+          "Scratch": {
+            "n": 92,
+            "auroc": 0.5095920579480738
+          },
+          "Near-full": {
+            "n": 9,
+            "auroc": 1.0
+          }
+        },
+        "aupr_blocked_prevalence_matched": {
+          "n_defect_kept": 541,
+          "prevalence": 0.06660920955429697,
+          "mean": 0.8204935357755221,
+          "ci95": [
+            0.7954264819382456,
+            0.8428211783427513
+          ]
+        }
+      },
+      "E0 불량 다이 비율 (원 바닥)": {
+        "aupr_blocked": 0.5143390467212962,
+        "auroc": 0.5777293394300347,
+        "aupr_order": 0.5143431443748799,
+        "fpr_at_95tpr": 0.9321989183485029,
+        "n_unique": 3753,
+        "aupr_blocked_ci95": [
+          0.5002791830052745,
+          0.5291361729726197
+        ],
+        "operating": [
+          {
+            "target_recall": 0.5,
+            "threshold": 0.15810276679841898,
+            "recall": 0.5001408054069276,
+            "precision": 0.3300501765471102,
+            "true_positives": 1776,
+            "false_positives": 3605,
+            "false_negatives": 1775,
+            "n_tied_at_threshold": 1
+          },
+          {
+            "target_recall": 0.8,
+            "threshold": 0.11296296296296296,
+            "recall": 0.800056322162771,
+            "precision": 0.3420007222824124,
+            "true_positives": 2841,
+            "false_positives": 5466,
+            "false_negatives": 710,
+            "n_tied_at_threshold": 1
+          },
+          {
+            "target_recall": 0.95,
+            "threshold": 0.0427689594356261,
+            "recall": 0.9501548859476204,
+            "precision": 0.32314912364716025,
+            "true_positives": 3374,
+            "false_positives": 7067,
+            "false_negatives": 177,
+            "n_tied_at_threshold": 4
+          }
+        ],
+        "per_class": {
+          "Center": {
+            "n": 682,
+            "auroc": 0.8364040793448353
+          },
+          "Donut": {
+            "n": 82,
+            "auroc": 0.9023875478169107
+          },
+          "Edge-Loc": {
+            "n": 502,
+            "auroc": 0.6831464538889686
+          },
+          "Edge-Ring": {
+            "n": 1774,
+            "auroc": 0.44473913229046624
+          },
+          "Loc": {
+            "n": 282,
+            "auroc": 0.42355562291319937
+          },
+          "Random": {
+            "n": 128,
+            "auroc": 0.9958922800422108
+          },
+          "Scratch": {
+            "n": 92,
+            "auroc": 0.20945527434146005
+          },
+          "Near-full": {
+            "n": 9,
+            "auroc": 1.0
+          }
+        },
+        "aupr_blocked_prevalence_matched": {
+          "n_defect_kept": 541,
+          "prevalence": 0.06660920955429697,
+          "mean": 0.25703173916431477,
+          "ci95": [
+            0.22210569617322387,
+            0.28694233432806104
+          ]
+        }
+      },
+      "기각 선 L=7 가드없음 (3차)": {
+        "aupr_blocked": 0.34915627358012274,
+        "auroc": 0.5630781662986707,
+        "aupr_order": 0.5007508818492121,
+        "fpr_at_95tpr": 0.2159345732752935,
+        "n_unique": 10,
+        "aupr_blocked_ci95": [
+          0.33875866594134085,
+          0.35785601923409893
+        ],
+        "operating": [
+          {
+            "target_recall": 0.5,
+            "threshold": 1.0,
+            "recall": 0.5001408054069276,
+            "precision": 0.5206684256816183,
+            "true_positives": 1776,
+            "false_positives": 1635,
+            "false_negatives": 1775,
+            "n_tied_at_threshold": 10020
+          },
+          {
+            "target_recall": 0.8,
+            "threshold": 1.0,
+            "recall": 0.800056322162771,
+            "precision": 0.6344350156319786,
+            "true_positives": 2841,
+            "false_positives": 1637,
+            "false_negatives": 710,
+            "n_tied_at_threshold": 10020
+          },
+          {
+            "target_recall": 0.95,
+            "threshold": 1.0,
+            "recall": 0.9501548859476204,
+            "precision": 0.6733186988625025,
+            "true_positives": 3374,
+            "false_positives": 1637,
+            "false_negatives": 177,
+            "n_tied_at_threshold": 10020
+          }
+        ],
+        "per_class": {
+          "Center": {
+            "n": 682,
+            "auroc": 0.5607923188121562
+          },
+          "Donut": {
+            "n": 82,
+            "auroc": 0.5700435298773249
+          },
+          "Edge-Loc": {
+            "n": 502,
+            "auroc": 0.5700435298773249
+          },
+          "Edge-Ring": {
+            "n": 1774,
+            "auroc": 0.5700435298773249
+          },
+          "Loc": {
+            "n": 282,
+            "auroc": 0.5096204490322485
+          },
+          "Random": {
+            "n": 128,
+            "auroc": 0.5700435298773249
+          },
+          "Scratch": {
+            "n": 92,
+            "auroc": 0.5549851459311895
+          },
+          "Near-full": {
+            "n": 9,
+            "auroc": 0.5700435298773249
+          }
+        },
+        "aupr_blocked_prevalence_matched": {
+          "n_defect_kept": 541,
+          "prevalence": 0.06660920955429697,
+          "mean": 0.07553325021783262,
+          "ci95": [
+            0.0748212367159913,
+            0.07608172507907307
+          ]
+        }
+      }
+    }
+  },
+  "reproduction": {
+    "max_abs_diff_vs_saved_test_scores": 0.0,
+    "aupr_blocked_recombined": 0.8325312630106333
+  },
+  "rank_spearman": {
+    "test_dev vs test_sealed": 1.0,
+    "test_dev vs val_unseen": 1.0
+  },
+  "r3_gap": {
+    "test_dev": 0.12604399359090745,
+    "test_sealed": 0.11366654668355813,
+    "val_unseen_prevalence_matched": 0.10856527956442852,
+    "threshold": 0.0614
+  }
+}

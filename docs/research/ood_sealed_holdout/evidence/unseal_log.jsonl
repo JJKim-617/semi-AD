@@ -1,0 +1,6 @@
+{"time": "2026-08-23T04:52:16+0900", "partition": "test_sealed", "reason": "사전등록 candidate/ood_sealed_holdout.md §5-R5 의 일회 평가", "n": 30900}
+{"time": "2026-08-23T04:52:16+0900", "partition": "val_unseen", "reason": "사전등록 candidate/ood_sealed_holdout.md §5-R5 의 일회 평가", "n": 11132}
+{"time": "2026-08-23T05:01:16+0900", "partition": "test_sealed", "reason": "val 이 왜 쉬운지 분해 (사후 진단, 판정에 안 씀)", "n": 30900}
+{"time": "2026-08-23T05:01:16+0900", "partition": "val_unseen", "reason": "val 이 왜 쉬운지 분해 (사후 진단, 판정에 안 씀)", "n": 11132}
+{"time": "2026-08-23T05:02:22+0900", "partition": "val_unseen", "reason": "예측 3, 4 오답 분해 (사후 진단, 채택 판정에 쓰지 않는다)", "n": 11132}
+{"time": "2026-08-23T05:11:07+0900", "partition": "test_sealed", "reason": "가드 실동작 확인", "n": 30900}

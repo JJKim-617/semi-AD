@@ -1,0 +1,63 @@
+[   2.7s] 적재 완료 test_dev 87695(결함 5799) test_sealed 30900(결함 2095) val_unseen 11132(결함 3551)
+[  63.2s] train-none 참조 완료
+[ 291.6s] test_dev     채택 fuse3 (A+B+C)           AUPRblk 0.8304 AUROC 0.9680 FPR@95 0.1877
+[ 294.1s] test_dev     채택 A+B (6차)                AUPRblk 0.8048 AUROC 0.9562 FPR@95 0.2841
+[ 296.3s] test_dev     채택 A 단독 (5차)               AUPRblk 0.7613 AUROC 0.9475 FPR@95 0.3307
+[ 298.6s] test_dev     채택 die k=7 (진짜 바닥)         AUPRblk 0.7043 AUROC 0.9185 FPR@95 0.4835
+[ 301.5s] test_dev     E0 불량 다이 비율 (원 바닥)         AUPRblk 0.3823 AUROC 0.7889 FPR@95 0.7426
+[ 302.8s] test_dev     기각 선 L=7 가드없음 (3차)         AUPRblk 0.0886 AUROC 0.6347 FPR@95 0.6983
+[ 384.3s] test_sealed  채택 fuse3 (A+B+C)           AUPRblk 0.8384 AUROC 0.9748 FPR@95 0.1193
+[ 385.1s] test_sealed  채택 A+B (6차)                AUPRblk 0.8104 AUROC 0.9643 FPR@95 0.1801
+[ 385.9s] test_sealed  채택 A 단독 (5차)               AUPRblk 0.7739 AUROC 0.9557 FPR@95 0.2631
+[ 386.6s] test_sealed  채택 die k=7 (진짜 바닥)         AUPRblk 0.7248 AUROC 0.9266 FPR@95 0.4572
+[ 387.5s] test_sealed  E0 불량 다이 비율 (원 바닥)         AUPRblk 0.3939 AUROC 0.7927 FPR@95 0.7338
+[ 388.0s] test_sealed  기각 선 L=7 가드없음 (3차)         AUPRblk 0.0905 AUROC 0.6338 FPR@95 0.7051
+[ 416.9s] val_unseen   채택 fuse3 (A+B+C)           AUPRblk 0.9710 AUROC 0.9728 FPR@95 0.0819
+[ 417.3s] val_unseen   채택 A+B (6차)                AUPRblk 0.9674 AUROC 0.9693 FPR@95 0.1338
+[ 417.7s] val_unseen   채택 A 단독 (5차)               AUPRblk 0.9312 AUROC 0.9464 FPR@95 0.2877
+[ 418.1s] val_unseen   채택 die k=7 (진짜 바닥)         AUPRblk 0.9297 AUROC 0.9385 FPR@95 0.5668
+[ 418.6s] val_unseen   E0 불량 다이 비율 (원 바닥)         AUPRblk 0.5143 AUROC 0.5777 FPR@95 0.9322
+[ 418.8s] val_unseen   기각 선 L=7 가드없음 (3차)         AUPRblk 0.3492 AUROC 0.5631 FPR@95 0.2159
+[ 418.9s] 재현 확인 최대 오차 0, 합쳐 잰 blocked AUPR 0.8325
+
+== blocked AUPR ==
+arm                          test_dev  test_sealed   val(raw)     val(유병률맞춤)
+채택 fuse3 (A+B+C)               0.8304       0.8384     0.9710         0.9291
+채택 A+B (6차)                    0.8048       0.8104     0.9674         0.9232
+채택 A 단독 (5차)                   0.7613       0.7739     0.9312         0.8113
+채택 die k=7 (진짜 바닥)             0.7043       0.7248     0.9297         0.8205
+E0 불량 다이 비율 (원 바닥)             0.3823       0.3939     0.5143         0.2570
+기각 선 L=7 가드없음 (3차)             0.0886       0.0905     0.3492         0.0755
+
+== AUROC / FPR@95TPR (유병률 무관, 직접 비교 가능) ==
+arm                                   test_dev         test_sealed          val_unseen
+채택 fuse3 (A+B+C)               0.9680 / 0.1877     0.9748 / 0.1193     0.9728 / 0.0819
+채택 A+B (6차)                    0.9562 / 0.2841     0.9643 / 0.1801     0.9693 / 0.1338
+채택 A 단독 (5차)                   0.9475 / 0.3307     0.9557 / 0.2631     0.9464 / 0.2877
+채택 die k=7 (진짜 바닥)             0.9185 / 0.4835     0.9266 / 0.4572     0.9385 / 0.5668
+E0 불량 다이 비율 (원 바닥)             0.7889 / 0.7426     0.7927 / 0.7338     0.5777 / 0.9322
+기각 선 L=7 가드없음 (3차)             0.6347 / 0.6983     0.6338 / 0.7051     0.5631 / 0.2159
+
+== 조건 R3: fuse3 − die k=7 격차 (test 에서 +0.1227) ==
+  test_dev     +0.1260
+  test_sealed  +0.1137
+  val_unseen   +0.1086  (유병률 맞춤. 판정 문턱 +0.0614)
+
+== 순위 Spearman ==
+  test_dev vs test_sealed      1.0000
+  test_dev vs val_unseen       1.0000
+
+== 운영 지점 (재현율 80%) precision / 헛경보 ==
+  채택 fuse3 (A+B+C)           dev 0.681/  2173  sealed 0.726/   634  val 0.995/    14
+  채택 A+B (6차)                dev 0.625/  2787  sealed 0.648/   911  val 0.995/    13
+  채택 A 단독 (5차)               dev 0.509/  4469  sealed 0.596/  1137  val 0.895/   333
+  채택 die k=7 (진짜 바닥)         dev 0.319/  9924  sealed 0.415/  2361  val 0.950/   148
+  E0 불량 다이 비율 (원 바닥)         dev 0.121/ 33837  sealed 0.121/ 12149  val 0.342/  5466
+  기각 선 L=7 가드없음 (3차)         dev 0.089/ 47382  sealed 0.093/ 16338  val 0.634/  1637
+
+== 클래스별 AUROC — 채택 fuse3 ==
+파티션                Center        Donut     Edge-Loc    Edge-Ring          Loc       Random      Scratch    Near-full
+test_dev     0.9377( 618) 0.9983( 103) 0.9798(2000) 0.9533( 856) 0.9828(1451) 0.9999( 184) 0.9197( 517) 1.0000(  70)
+test_sealed  0.9515( 214) 0.9993(  43) 0.9850( 772) 0.9565( 270) 0.9835( 522) 0.9991(  73) 0.9414( 176) 0.9999(  25)
+val_unseen   0.9961( 682) 0.9969(  82) 0.9944( 502) 0.9631(1774) 0.9800( 282) 0.9999( 128) 0.7835(  92) 1.0000(   9)
+[ 418.9s] 저장 완료 → result/ood/holdout/sealed_eval.json

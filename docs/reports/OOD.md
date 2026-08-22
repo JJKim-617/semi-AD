@@ -313,6 +313,7 @@ train-none 이 387장, 22,602장에 218장뿐이다(웨이퍼당 0.016, 0.010).
 | **봉인 홀드아웃 레지스트리, 가드** | `src/a38_sealed_holdout.py` | `result/ood/holdout/sealed_holdout_v1.npz`, `unseal_log.jsonl` |
 | **봉인 일회 평가 (세 파티션)** | `src/a39_sealed_eval.py` | `result/ood/holdout/sealed_eval.json` |
 | val 이 왜 더 쉬운가 분해 | `src/diag_ood_holdout_shift.py` | 〃 `holdout_shift.json` |
+| 〃 원자료 사본 (git 에 남는 쪽) | — | `docs/research/ood_sealed_holdout/evidence/` |
 
 바닥 수치는 `tests/test_a21_ood_baseline_pin.py`(E0)와
 `tests/test_a24_local_density_pin.py`(국소 밀도)로 고정돼 있다 — 되돌아가면 테스트가 깨진다.
