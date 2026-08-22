@@ -263,5 +263,53 @@
     "representation": "pad64",
     "architecture": "convnext_tiny",
     "backbone": "convnext_tiny"
+  },
+  {
+    "tag": "e19_ema_s0",
+    "ckpt": "result/cls_baseline/e19_ema_s0_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "resnet18",
+    "note": "원본 가중치"
+  },
+  {
+    "tag": "e19_ema_s0_emaw",
+    "ckpt": "result/cls_baseline/e19_ema_s0_ema.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "resnet18",
+    "note": "EMA 가중치"
+  },
+  {
+    "tag": "e19_ema_s1",
+    "ckpt": "result/cls_baseline/e19_ema_s1_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "resnet18",
+    "note": "원본 가중치"
+  },
+  {
+    "tag": "e19_ema_s1_emaw",
+    "ckpt": "result/cls_baseline/e19_ema_s1_ema.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "resnet18",
+    "note": "EMA 가중치"
+  },
+  {
+    "tag": "e19_ema_s2",
+    "ckpt": "result/cls_baseline/e19_ema_s2_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "resnet18",
+    "note": "원본 가중치"
+  },
+  {
+    "tag": "e19_ema_s2_emaw",
+    "ckpt": "result/cls_baseline/e19_ema_s2_ema.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "resnet18",
+    "note": "EMA 가중치"
   }
 ]
