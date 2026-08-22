@@ -1,0 +1,54 @@
+== 짝지은 AUPR 차이 (같은 재표본, 1000회) ==
+비교                                                AUPR a    AUPR b              차이 95% CI         p
+FUSE 비율+T-PAD S_llr vs E0 불량 다이 비율(대조)            0.4058    0.3856  [+0.0121, +0.0280]    0.0000
+    → 융합이 자명한 기준선을 이기는가 (반증 조건 6) : 이김
+FUSE 비율+T-PAD S_llr vs T-PAD S_llr                0.4058    0.3474  [+0.0536, +0.0636]    0.0000
+    → 융합이 나머지 구성 요소를 이기는가 : 이김
+T-RESIZE S_nll vs U-NLL 균일 template(대조)           0.3619    0.2987  [+0.0538, +0.0724]    0.0000
+    → 리사이즈 template 이 균일 대조군보다 나은가 : 이김
+T-PAD S_nll vs U-NLL 균일 template(대조)              0.2997    0.2987  [-0.0003, +0.0022]    0.1320
+    → pad template 이 균일 대조군보다 나은가 : 구분 안 됨
+T-RADIAL S_nll vs U-NLL 균일 template(대조)           0.2948    0.2987  [-0.0051, -0.0028]    0.0000
+    → 반경 template 이 균일 대조군보다 나은가 : 짐
+T-RESIZE S_nll vs E0 불량 다이 비율(대조)                 0.3619    0.3856  [-0.0259, -0.0215]    0.0000
+    → 가장 좋은 단독 template arm 이 바닥을 넘는가 : 짐
+
+== 뒤집으면 강한 신호인가 (클래스별 AUROC, none 대비) ==
+이상 점수로 0.5 보다 한참 낮다는 것은 정보가 없다는 뜻이 아니라 부호가 반대라는 뜻이다.
+
+T-RESIZE S_llr
+    Center 0.410(뒤집으면 0.590)
+    Donut 0.959(뒤집으면 0.041)
+    Edge-Loc 0.327(뒤집으면 0.673)
+    Edge-Ring 0.028(뒤집으면 0.972)
+    Loc 0.673(뒤집으면 0.327)
+    Random 0.990(뒤집으면 0.010)
+    Scratch 0.615(뒤집으면 0.385)
+    Near-full 0.997(뒤집으면 0.003)
+
+T-RADIAL S_llr
+    Center 0.391(뒤집으면 0.609)
+    Donut 0.957(뒤집으면 0.043)
+    Edge-Loc 0.302(뒤집으면 0.698)
+    Edge-Ring 0.023(뒤집으면 0.977)
+    Loc 0.677(뒤집으면 0.323)
+    Random 0.970(뒤집으면 0.030)
+    Scratch 0.599(뒤집으면 0.401)
+    Near-full 1.000(뒤집으면 0.000)
+
+T-PAD S_llr
+    Center 0.556(뒤집으면 0.444)
+    Donut 0.892(뒤집으면 0.108)
+    Edge-Loc 0.731(뒤집으면 0.269)
+    Edge-Ring 0.833(뒤집으면 0.167)
+    Loc 0.594(뒤집으면 0.406)
+    Random 0.968(뒤집으면 0.032)
+    Scratch 0.546(뒤집으면 0.454)
+    Near-full 0.999(뒤집으면 0.001)
+
+== 두 결함 클래스를 서로 가르는가 (Edge-Ring vs Scratch, 결함끼리) ==
+탐지가 아니라 하류 8종 분류의 관점이다. 정상은 빼고 결함끼리만 본다.
+  T-RESIZE S_llr               Edge-Ring vs Scratch AUROC 0.9825
+  T-RADIAL S_llr               Edge-Ring vs Scratch AUROC 0.9833
+  E0 불량 다이 비율(대조)              Edge-Ring vs Scratch AUROC 0.1364
+  E0 불량 다이 개수(대조)              Edge-Ring vs Scratch AUROC 0.1711
