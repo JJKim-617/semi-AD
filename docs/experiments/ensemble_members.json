@@ -376,5 +376,15 @@
     "line_ls": [
       11
     ]
+  },
+  {
+    "tag": "e21_line_s2",
+    "ckpt": "result/cls_baseline/e21_line_s2_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "resnet18",
+    "line_ls": [
+      11
+    ]
   }
 ]
