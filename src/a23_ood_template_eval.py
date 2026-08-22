@@ -112,6 +112,37 @@ def paired_aupr_diff_ci(score_a, score_b, label, n_boot=1000, seed=0):
     return lo, hi, p
 
 
+def paired_aupr_blocked_diff_ci(score_a, score_b, label, n_boot=800, seed=0):
+    """**주 지표(blocked AUPR)로 하는 짝지은 비교.**
+
+    `paired_aupr_diff_ci` 는 순서 의존 AUPR 을 쓴다. 동점이 적으면 같지만
+    `k2` 계열은 고유값이 25개뿐이라 두 관례가 0.017 까지 벌어진다.
+    **주 지표를 blocked 로 정해 놓고 검정만 순서 의존으로 하면 다른 것을 재게 된다.**
+
+    재표본 인덱스를 한 번 뽑아 두 점수에 똑같이 먹인다. blocked 은 재표본마다
+    블록 구조가 달라지므로 매번 다시 정렬한다 — 느리지만 그게 정의다.
+    """
+    from a21_ood_metrics import aupr_blocked
+
+    a = np.asarray(score_a, np.float64)
+    b = np.asarray(score_b, np.float64)
+    l = np.asarray(label, np.int64)
+    n = len(l)
+    rng = np.random.default_rng(seed)
+    d = np.empty(n_boot, np.float64)
+    for i in range(n_boot):
+        idx = rng.integers(0, n, n)
+        li = l[idx]
+        if li.sum() == 0 or li.sum() == n:
+            d[i] = np.nan
+            continue
+        d[i] = aupr_blocked(a[idx], li) - aupr_blocked(b[idx], li)
+    lo = float(np.nanpercentile(d, 2.5))
+    hi = float(np.nanpercentile(d, 97.5))
+    frac = float(np.nanmean(d <= 0.0))
+    return lo, hi, 2.0 * min(frac, 1.0 - frac)
+
+
 def _fast_auroc(score, label):
     """`a21_ood_metrics.auroc` 와 같은 값. 동점 구간 루프를 벡터화만 했다.
 

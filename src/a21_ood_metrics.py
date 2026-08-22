@@ -152,3 +152,29 @@ def operating_points(score, label, recalls=(0.5, 0.8, 0.95)) -> list:
             "n_tied_at_threshold": int((score == thr).sum()),
         })
     return out
+
+
+def aupr_blocked(score, label) -> float:
+    """**동점을 블록으로 묶는 AUPR. 이것이 이 워크스트림의 관례다.**
+
+    같은 점수를 받은 표본은 어떤 문턱으로도 서로 갈리지 않는다. 그러니 지표도
+    그것들을 갈라서는 안 된다. **서로 다른 문턱 값에서만** 곡선 위의 점을 찍으면
+    입력 순서와 무관한 하나의 값이 나온다.
+
+    왜 필요한가: 창 3x3 밀도는 고유값이 108개뿐인데, `aupr` 의 결정론적 값 0.4986 이
+    동점을 무작위로 해소한 범위 [0.4112, 0.4248] **바깥**이었다.
+    동점 안에서 원래 인덱스 순서를 쓰는데 test 배열 위치와 결함 여부에 약한 상관이
+    있어서(0.0116) **동점 처리를 통해 라벨이 샌다.**
+
+    정보가 없는 점수(전부 같은 값)에서는 블록이 하나라 **정확히 유병률**이 나온다.
+    동점이 없으면 `aupr` 과 같다.
+    """
+    score, label = _check(score, label)
+    order = np.argsort(-score, kind="mergesort")
+    s, l = score[order], label[order]
+    tp = np.cumsum(l)
+    tot = np.arange(1, len(l) + 1)
+    last = np.flatnonzero(np.concatenate([s[1:] != s[:-1], [True]]))   # 각 블록의 끝
+    prec = tp[last] / tot[last]
+    rec = tp[last] / tp[-1]
+    return float(np.sum(np.diff(np.concatenate([[0.0], rec])) * prec))

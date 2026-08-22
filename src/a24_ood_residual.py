@@ -129,9 +129,9 @@ def smooth_map(m, die, k: int = 3):
     """
     m = np.asarray(m, np.float64)
     d = np.asarray(die).astype(np.float64)
-    num = ndimage.uniform_filter(m, size=(1, k, k), mode="constant")
-    den = ndimage.uniform_filter(d, size=(1, k, k), mode="constant")
-    sm = num / np.maximum(den, 1.0 / (k * k))
+    num = window_sum(m, k)
+    den = window_sum(d, k)
+    sm = num / np.where(den > 0, den, 1.0)
     return np.where(np.asarray(die), sm, 0.0)
 
 
@@ -170,11 +170,27 @@ def pool_max_component(m, die, threshold=None, connectivity=CONNECTIVITY_8):
     return out
 
 
+def window_sum(a: np.ndarray, k: int) -> np.ndarray:
+    """kxk 창합을 **정확히** 구한다. 0/1 배열의 정수합이라 float64 에서 오차가 없다.
+
+    `ndimage.uniform_filter` 를 쓰면 안 된다. 분리 가능 running sum 으로 평균을 구하면서
+    마지막 비트에 오차가 쌓여 **같아야 할 값이 1e-16 수준에서 갈린다**
+    (음수 밀도까지 나왔다). 그 가짜 구분이 동점을 쪼개고, 동점은 인덱스 순서로
+    정렬되는데 test 배열 위치가 결함 여부와 약하게 상관돼 **라벨 정보가 샌다.**
+    창 3x3 밀도의 AUPR 이 0.365 에서 0.446 으로 부풀었던 원인이다.
+    """
+    ones = np.ones(k, dtype=np.float64)
+    t = ndimage.convolve1d(a, ones, axis=1, mode="constant", cval=0.0)
+    return ndimage.convolve1d(t, ones, axis=2, mode="constant", cval=0.0)
+
+
 def local_fail_density_map(x, k: int = 7, chunk: int = 2000) -> np.ndarray:
     """창 kxk 안 **불량 다이 비율** 맵. template 이 전혀 없다 — 학습이 0 이다.
 
     창 안의 다이 개수로 나누므로 웨이퍼 가장자리에서도 희석되지 않고,
     비율이라 웨이퍼 크기에 자동으로 불변이다.
+
+    창합을 정수로 정확히 구하므로 **같은 (불량, 다이) 개수는 같은 비트**를 준다.
     """
     x = np.asarray(x)
     out = np.zeros(x.shape, np.float64)
@@ -182,9 +198,35 @@ def local_fail_density_map(x, k: int = 7, chunk: int = 2000) -> np.ndarray:
         xb = x[a:a + chunk]
         die = (xb > 0).astype(np.float64)
         fail = (xb == 2).astype(np.float64)
-        num = ndimage.uniform_filter(fail, size=(1, k, k), mode="constant")
-        den = ndimage.uniform_filter(die, size=(1, k, k), mode="constant")
-        out[a:a + len(xb)] = np.where(xb > 0, num / np.maximum(den, 1e-12), 0.0)
+        num = window_sum(fail, k)
+        den = window_sum(die, k)
+        out[a:a + len(xb)] = np.where(xb > 0, num / np.where(den > 0, den, 1.0), 0.0)
+    return out
+
+
+def local_fail_count_map(x, k: int = 7, chunk: int = 2000) -> np.ndarray:
+    """창 kxk 안 **불량 다이 개수를 창 넓이(k*k)로 나눈 것**. 분모가 다이 개수가 아니다.
+
+    가장자리 창은 다이가 적게 들어오므로 이 값이 저절로 작아진다 —
+    즉 **가장자리를 암묵적으로 깎는다.** 반경 대역 보정이 명시적으로 하는 일을
+    분모 선택만으로 흉내내는 셈이라, 둘을 갈라 재야 한다.
+    """
+    x = np.asarray(x)
+    out = np.zeros(x.shape, np.float64)
+    for a in range(0, len(x), chunk):
+        xb = x[a:a + chunk]
+        fail = (xb == 2).astype(np.float64)
+        out[a:a + len(xb)] = np.where(xb > 0, window_sum(fail, k) / float(k * k), 0.0)
+    return out
+
+
+def local_fail_count_max(x, k: int = 7, chunk: int = 2000) -> np.ndarray:
+    """위 맵의 최대."""
+    x = np.asarray(x)
+    out = np.empty(len(x), np.float64)
+    for a in range(0, len(x), chunk):
+        xb = x[a:a + chunk]
+        out[a:a + len(xb)] = pool_max(local_fail_count_map(xb, k=k, chunk=chunk), xb > 0)
     return out
 
 
