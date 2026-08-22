@@ -183,5 +183,85 @@
     "representation": "pad64",
     "architecture": "resnet18",
     "augment": "noise"
+  },
+  {
+    "tag": "e17_translate_s2",
+    "ckpt": "result/cls_baseline/e17_translate_s2_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "resnet18",
+    "augment": "translate"
+  },
+  {
+    "tag": "e17_translate_s3",
+    "ckpt": "result/cls_baseline/e17_translate_s3_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "resnet18",
+    "augment": "translate"
+  },
+  {
+    "tag": "e18_shufflenet_v2_s0",
+    "ckpt": "result/cls_baseline/e18_shufflenet_v2_s0_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "shufflenet_v2",
+    "backbone": "shufflenet_v2"
+  },
+  {
+    "tag": "e18_shufflenet_v2_s1",
+    "ckpt": "result/cls_baseline/e18_shufflenet_v2_s1_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "shufflenet_v2",
+    "backbone": "shufflenet_v2"
+  },
+  {
+    "tag": "e18_mobilenet_v3_s0",
+    "ckpt": "result/cls_baseline/e18_mobilenet_v3_s0_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "mobilenet_v3",
+    "backbone": "mobilenet_v3"
+  },
+  {
+    "tag": "e18_mobilenet_v3_s1",
+    "ckpt": "result/cls_baseline/e18_mobilenet_v3_s1_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "mobilenet_v3",
+    "backbone": "mobilenet_v3"
+  },
+  {
+    "tag": "e18_efficientnet_b0_s0",
+    "ckpt": "result/cls_baseline/e18_efficientnet_b0_s0_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "efficientnet_b0",
+    "backbone": "efficientnet_b0"
+  },
+  {
+    "tag": "e18_efficientnet_b0_s1",
+    "ckpt": "result/cls_baseline/e18_efficientnet_b0_s1_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "efficientnet_b0",
+    "backbone": "efficientnet_b0"
+  },
+  {
+    "tag": "e18_convnext_tiny_s0",
+    "ckpt": "result/cls_baseline/e18_convnext_tiny_s0_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "convnext_tiny",
+    "backbone": "convnext_tiny"
+  },
+  {
+    "tag": "e18_convnext_tiny_s1",
+    "ckpt": "result/cls_baseline/e18_convnext_tiny_s1_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "convnext_tiny",
+    "backbone": "convnext_tiny"
   }
 ]
