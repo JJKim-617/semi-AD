@@ -141,21 +141,33 @@ def angular_augment(x: np.ndarray, shift: int, flip: bool) -> np.ndarray:
     return np.ascontiguousarray(out)
 
 
-def augment_batch(x: np.ndarray, mode: str, rng) -> np.ndarray:
-    """입력 표현에 맞는 증강을 고른다.
+def augment_batch(x: np.ndarray, mode: str, rng, extra=()) -> np.ndarray:
+    """입력 표현에 맞는 증강을 고르고, 추가 증강이 있으면 이어서 적용한다.
 
     `dihedral` 은 카르테시안(pad, resize)용, `angular` 는 극좌표용이다.
     표현과 증강이 어긋나면 학습이 망가진다 — E15 에서 극좌표에 dihedral 을 걸었더니
     test macro-F1 이 0.5206 까지 떨어졌다.
+
+    `extra` 는 a18 의 레시피 이름 목록이다(scale, translate, noise, dropout).
+    scale 과 translate 는 캔버스에 여백이 있어야 의미가 있으므로 **pad 표현 전용**이다.
     """
-    if mode == "none":
-        return x
     if mode == "dihedral":
-        return dihedral(x, k=int(rng.integers(4)), flip=bool(rng.integers(2)))
-    if mode == "angular":
-        return angular_augment(x, shift=int(rng.integers(x.shape[-1])),
-                               flip=bool(rng.integers(2)))
-    raise ValueError(f"모르는 증강 방식: {mode}")
+        out = dihedral(x, k=int(rng.integers(4)), flip=bool(rng.integers(2)))
+    elif mode == "angular":
+        out = angular_augment(x, shift=int(rng.integers(x.shape[-1])),
+                              flip=bool(rng.integers(2)))
+    elif mode == "none":
+        out = x
+    else:
+        raise ValueError(f"모르는 증강 방식: {mode}")
+
+    if extra:
+        import sys
+        from pathlib import Path
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from a18_augment import apply_recipe
+        out = apply_recipe(out, extra, rng)
+    return out
 
 
 def _batches(n: int, batch_size: int, shuffle: bool, rng=None):
@@ -167,7 +179,7 @@ def _batches(n: int, batch_size: int, shuffle: bool, rng=None):
 
 
 def train_one_epoch(model, X, y, optimizer, batch_size=256, device="cuda",
-                    weight=None, augment=False, rng=None, criterion=None,
+                    weight=None, augment=False, extra_augment=(), rng=None, criterion=None,
                     grad_clip=None) -> float:
     """한 에폭 학습하고 평균 손실을 반환한다.
 
@@ -182,7 +194,8 @@ def train_one_epoch(model, X, y, optimizer, batch_size=256, device="cuda",
     for b in _batches(len(X), batch_size, shuffle=True, rng=rng):
         xb = X[b]
         if augment:
-            xb = augment_batch(xb, "dihedral" if augment is True else augment, rng)
+            xb = augment_batch(xb, "dihedral" if augment is True else augment, rng,
+                               extra=extra_augment)
         inp = to_onehot(xb).to(device)
         tgt = torch.as_tensor(y[b], dtype=torch.long, device=device)
         optimizer.zero_grad(set_to_none=True)
@@ -226,6 +239,9 @@ def main() -> None:
     p.add_argument("--lr", type=float, default=1e-3)
     p.add_argument("--pretrained", action="store_true")
     p.add_argument("--augment", action="store_true")
+    p.add_argument("--extra-augment", nargs="*", default=[],
+                   choices=["scale", "translate", "noise", "dropout"],
+                   help="a18 추가 증강. scale/translate 는 pad 표현 전용.")
     p.add_argument("--augment-mode", choices=["dihedral", "angular"], default="dihedral",
                    help="dihedral=카르테시안(pad, resize)용, angular=극좌표용. "
                         "표현과 어긋나면 학습이 망가진다.")
@@ -285,7 +301,8 @@ def main() -> None:
             for g in opt.param_groups:
                 g["lr"] = lr_now
         loss = train_one_epoch(model, X[tr], y[tr], opt, a.batch_size, device,
-                               weight=w, augment=(a.augment_mode if a.augment else False), rng=rng,
+                               weight=w, augment=(a.augment_mode if a.augment else False),
+                               extra_augment=tuple(a.extra_augment), rng=rng,
                                criterion=criterion, grad_clip=a.grad_clip)
         m = evaluate(y[va], predict(model, X[va], a.batch_size * 2, device), len(classes))
         hist.append({"epoch": ep, "loss": loss, "val_macro_f1": m["macro_f1"],

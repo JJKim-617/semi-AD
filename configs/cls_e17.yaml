@@ -1,0 +1,15 @@
+# E17 — 증강 확장. 나머지는 E8(pad, dihedral 만)과 완전히 동일하게 두어
+# 추가 증강의 효과만 분리한다. 대조군은 재학습하지 않고 e8_pad / e10_pad_s1 / e10_pad_s2
+# 세 seed(평균 0.7261)를 그대로 쓴다.
+cache: data/wm811k/cache/wm811k_64pad.npz
+tag: e17
+epochs: 40
+batch_size: 256
+lr: 0.001
+pretrained: false
+augment: true
+class_weight: false
+loss: ce
+cosine: true
+warmup: 3
+seed: 0

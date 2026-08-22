@@ -79,3 +79,12 @@
 4. **문서 성격을 섞지 않는다** — `result/`는 실행 산출물(자동 생성), `docs/experiments/details/`는 시점 기록(불변),
    `docs/reports/`는 큐레이션된 종합 결론(계속 갱신).
 5. **빈 디렉토리도 유지** — `.gitkeep`으로 자리를 고정해 산출물이 흩어지지 않게 한다.
+6. **사이클마다 문서 3종을 확인하고 커밋한다** — 실험 한 사이클이 끝나면 아래를 전부 채운 뒤에만 커밋한다.
+   하나라도 비면 커밋하지 않는다.
+   1. `docs/experiments/candidate/<주제>.md` — 반증 조건은 **실행 전**, 판정은 **실행 후** append
+   2. `docs/experiments/details/cycle_log.md` — 사이클 연대기. 무엇을 왜 했고 무엇이 나왔는지
+   3. `docs/reports/CLASSIFICATION.md` — 현재 상태 SSOT
+   정정이 생기면 이전 결론을 고쳐 쓰지 말고 **정정 절을 따로** 둔다.
+   (2026-08-22 에 candidate 와 보고서만 갱신하고 cycle_log 를 여덟 사이클 동안 방치한 적이 있다.
+   보고서는 "현재 상태"라 과정이 지워지고 candidate 는 주제별이라 시간 순서가 없다.
+   cycle_log 가 없으면 왜 그 순서로 갔는지 복원할 수 없다.)
