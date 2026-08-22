@@ -55,7 +55,7 @@ def _softmax(z: np.ndarray) -> np.ndarray:
 
 def cache_tta_logits(ckpt: str, cache: str, splits: str, out_dir: str, tag: str,
                      scheme: str = "dihedral", n_angle: int = 8, flips: bool = True,
-                     batch_size: int = 512) -> str:
+                     batch_size: int = 512, backbone: str = "resnet18") -> str:
     """TTA 평균 확률을 로그로 되돌려 a6 와 같은 npz 형식으로 저장한다.
 
     확률을 평균한 뒤 log 를 취한다. 앙상블 도구가 로짓에 softmax 를 다시 걸어도
@@ -76,7 +76,7 @@ def cache_tta_logits(ckpt: str, cache: str, splits: str, out_dir: str, tag: str,
     n_cls = len(d["classes"])
     X, y_all = d["X"], d["y"]          # npz 지연 로딩을 배치 루프 밖에서 한 번만
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    model = build_model(num_classes=n_cls, pretrained=False)
+    model = build_model(num_classes=n_cls, pretrained=False, backbone=backbone)
     model.load_state_dict(torch.load(ckpt, map_location=device, weights_only=True))
     model.to(device).eval()
 
@@ -131,14 +131,12 @@ def main() -> None:
     print("%-22s %10s %10s %9s" % ("run", "기본", "TTA", "차이"))
     rows = []
     for e in entries:
-        if e.get("architecture", "resnet18") != "resnet18":
-            print("%-22s (구조가 달라 건너뜀)" % e["tag"])
-            continue
         scheme = "angular" if e["representation"].startswith("polar") else "dihedral"
         suffix = "tta4" if a.rotations_only else "tta"
         tta_tag = f"{e['tag']}_{suffix}"
         cache_tta_logits(e["ckpt"], e["cache"], a.splits, a.out_dir, tta_tag,
-                         scheme=scheme, flips=not a.rotations_only)
+                         scheme=scheme, flips=not a.rotations_only,
+                         backbone=e.get("backbone", "resnet18"))
 
         base = np.load(Path(a.out_dir) / f"{e['tag']}_logits.npz")
         tta = np.load(Path(a.out_dir) / f"{tta_tag}_logits.npz")
