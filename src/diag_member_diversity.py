@@ -16,9 +16,11 @@ C 가 맞다면 **밀도끼리가 translate 끼리보다 더 닮아야** 한다.
 """
 from __future__ import annotations
 
+import glob
 import itertools
 import json
 import os
+import pathlib
 import sys
 
 import numpy as np
@@ -26,6 +28,7 @@ import numpy as np
 sys.path.insert(0, "src")
 
 POST = "result/posthoc"
+ROOT_MANIFEST = pathlib.Path("docs/experiments/ensemble_members.json")
 OUT = "docs/research/local_density/evidence"
 
 
@@ -93,6 +96,49 @@ def main() -> None:
                            "평균낼 것이 안 생긴다."
                            if p_de["err_corr"] > p_tr["err_corr"]
                            else "**C 반증: 밀도 모델이 오히려 더 다양하다.** 다른 설명이 필요하다."))
+
+    # --- 어느 축이 다양성을 만드는가 (품질을 맞춘 짝만) -------------------------
+    #
+    # 위 비교는 특정 군끼리다. 여기서는 **무엇이 다른가**로 짝을 분류한다.
+    # 오류 상관은 오류 개수와 얽히므로 개수가 400 이내인 짝만 쓰고
+    # 망가진 모델(오류 4,200 초과)은 뺀다.
+    ent = json.loads((ROOT_MANIFEST).read_text(encoding="utf-8"))
+    meta = {e["tag"]: e for e in ent}
+    ALL, ty2 = {}, None
+    for p2 in sorted(glob.glob(f"{POST}/*_logits.npz")):
+        t = os.path.basename(p2).replace("_logits.npz", "")
+        if t.endswith("_tta") or t not in meta:
+            continue
+        d = np.load(p2)
+        ty2 = d["test_y"] if ty2 is None else ty2
+        ALL[t] = (d["test_logits"].argmax(1) != ty2).astype(float)
+    nerr = {t: int(v.sum()) for t, v in ALL.items()}
+
+    def axis(a, b):
+        ma, mb = meta[a], meta[b]
+        if ma.get("representation") != mb.get("representation"):
+            return "표현 (격자 기하)"
+        if ma.get("architecture", "resnet18") != mb.get("architecture", "resnet18"):
+            return "백본 계열"
+        ka = tuple(ma.get("density_ks", ())) + tuple(ma.get("line_ls", ()))
+        kb = tuple(mb.get("density_ks", ())) + tuple(mb.get("line_ls", ()))
+        if ka != kb:
+            return "입력 채널 추가"
+        return "seed 만"
+
+    buckets = {}
+    for a, b in itertools.combinations(sorted(ALL), 2):
+        if abs(nerr[a] - nerr[b]) > 400 or max(nerr[a], nerr[b]) > 4200:
+            continue
+        buckets.setdefault(axis(a, b), []).append(
+            float(np.corrcoef(ALL[a], ALL[b])[0, 1]))
+    print("\n== 어느 축이 다양성을 만드는가 (오류 개수 400 이내로 맞춘 짝) ==")
+    print("  %-18s %6s %10s" % ("다른 축", "짝 수", "오류 상관"))
+    res["axis"] = {}
+    for k, v in sorted(buckets.items(), key=lambda kv: np.mean(kv[1])):
+        res["axis"][k] = {"n": len(v), "err_corr": float(np.mean(v))}
+        print("  %-18s %6d %10.4f" % (k, len(v), np.mean(v)))
+    print("  낮을수록 다양하다. **앙상블을 올리려면 이 값이 낮은 축을 골라야 한다.**")
 
     os.makedirs(OUT, exist_ok=True)
     with open(os.path.join(OUT, "member_diversity.json"), "w") as f:
