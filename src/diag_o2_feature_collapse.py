@@ -83,7 +83,12 @@ def mean_pair_dist(f, n=4000, seed=0):
 
 
 if __name__ == "__main__":
-    torch.set_num_threads(10)
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--threads", type=int, default=10)
+    A = ap.parse_args()
+    torch.set_num_threads(A.threads)
     sp = np.load("data/wm811k/cache/splits_v1.npz")
     d = np.load("data/wm811k/cache/wm811k_64pad.npz", allow_pickle=True)
     y = d["y"].astype(np.int64)
@@ -96,14 +101,14 @@ if __name__ == "__main__":
     tr_s = trn[rng.choice(len(trn), N_SAMPLE, replace=False)]
     y_dev = y[dev]
     def_s = dev[y_dev != 0][rng.choice(int((y_dev != 0).sum()), N_SAMPLE, replace=False)]
-    log("표본: train-none %d, dev 결함 %d" % (len(tr_s), len(def_s)))
+    log("seed %d — 표본: train-none %d, dev 결함 %d" % (A.seed, len(tr_s), len(def_s)))
 
     rep = {}
     for arm in ("random", "trained"):
-        torch.manual_seed(0)
+        torch.manual_seed(A.seed)
         enc = M.PatchEncoder()
         if arm == "trained":
-            train_encoder(enc, X, trn, 0, M.EPOCHS, "cpu")
+            train_encoder(enc, X, trn, A.seed, M.EPOCHS, "cpu")
         enc.eval()
         f_tr = patch_feats(enc, X, tr_s, 8, 1)
         f_df = patch_feats(enc, X, def_s, 8, 2)
@@ -121,8 +126,8 @@ if __name__ == "__main__":
             "defect_to_normal_min_mean": float(cross.min(1).mean()),
             "n_patch_train_none": int(len(f_tr)), "n_patch_defect": int(len(f_df)),
         }
-        log("%-8s 유효차원 %5.2f (정상) / %5.2f (결함)  평균쌍거리 %.5f  결함-정상 최근접 %.6f"
-            % (arm, ed_tr, ed_df, m_tr, rep[arm]["defect_to_normal_min_mean"]))
+        log("s%d %-8s 유효차원 %5.2f (정상) / %5.2f (결함)  평균쌍거리 %.5f  결함-정상 최근접 %.6f"
+            % (A.seed, arm, ed_tr, ed_df, m_tr, rep[arm]["defect_to_normal_min_mean"]))
 
     print("\n%-28s %12s %12s %10s" % ("", "무작위 초기화", "학습 후", "비율"))
     for k in ("eff_dim_train_none", "eff_dim_defect", "mean_pair_dist_train_none",
@@ -130,5 +135,5 @@ if __name__ == "__main__":
         a, b = rep["random"][k], rep["trained"][k]
         print("%-28s %12.5f %12.5f %10.3f" % (k, a, b, b / a if a else float("nan")))
 
-    (OUT / "feature_collapse.json").write_text(json.dumps(rep, ensure_ascii=False, indent=2))
+    (OUT / ("feature_collapse_s%d.json" % A.seed)).write_text(json.dumps(rep, ensure_ascii=False, indent=2))
     log("저장 완료")
