@@ -178,3 +178,42 @@ def aupr_blocked(score, label) -> float:
     prec = tp[last] / tot[last]
     rec = tp[last] / tp[-1]
     return float(np.sum(np.diff(np.concatenate([[0.0], rec])) * prec))
+
+
+def subsample_auroc_null(pos_score, neg_score, n: int, n_rep: int = 2000,
+                         seed: int = 0, observed: float | None = None) -> dict:
+    """**같은 분포에서 양성을 n 장만 뽑으면 AUROC 이 얼마나 흔들리는가.**
+
+    작은 클래스의 AUROC 을 그대로 믿지 않기 위한 귀무분포다.
+    11차 사이클이 `val_unseen` 에서 Scratch 0.7835 (n=92) 를 관측했는데,
+    `test_dev` 의 Scratch 는 510장이다. **510장에서 92장을 뽑아 재면 어떤 값이 나오는지**
+    를 먼저 보지 않으면 "다른 분포라 낮다" 와 "n 이 작아 낮다" 를 못 가른다.
+
+    이 프로젝트는 **n=2 로 판정했다가 세 번 뒤집혔다.** 작은 n 은 먼저 귀무에 대고 본다.
+
+    - 양성만 **비복원**으로 뽑는다. 복원하면 동점이 생겨 AUROC 이 위로 치우친다.
+    - 음성은 매번 전부 쓴다. 여기서 묻는 것은 양성 표본 크기의 효과뿐이다.
+    - `observed` 를 주면 귀무에서 그 값 **아래**인 비율을 같이 돌려준다(판정 규칙용).
+    """
+    pos = np.asarray(pos_score, np.float64).ravel()
+    neg = np.asarray(neg_score, np.float64).ravel()
+    if n > len(pos):
+        raise ValueError(f"양성이 {len(pos)}개뿐인데 {n}개를 뽑을 수 없다")
+    if n < 1:
+        raise ValueError(f"n 은 1 이상이어야 한다: {n}")
+    lab = np.concatenate([np.zeros(len(neg), np.int64), np.ones(n, np.int64)])
+    rng = np.random.default_rng(seed)
+    vals = np.empty(n_rep, np.float64)
+    for i in range(n_rep):
+        take = rng.choice(len(pos), n, replace=False)
+        vals[i] = auroc(np.concatenate([neg, pos[take]]), lab)
+    out = {
+        "n": int(n), "n_rep": int(n_rep),
+        "values": vals,
+        "mean": float(vals.mean()),
+        "ci95": [float(np.percentile(vals, 2.5)), float(np.percentile(vals, 97.5))],
+    }
+    if observed is not None:
+        out["observed"] = float(observed)
+        out["frac_below_observed"] = float((vals < observed).mean())
+    return out

@@ -1,0 +1,565 @@
+{
+  "reason": "사전등록 candidate/ood_scratch_shift.md §6 — Scratch 경고등 원인 진단 1회. arm 선택·기각·튜닝에 쓰지 않는다",
+  "n": {
+    "dev": 87695,
+    "val": 11132
+  },
+  "cross": {
+    "fuse3": {
+      "Center": {
+        "n_dev": 618,
+        "n_val": 682,
+        "devpos_devneg": 0.9376830702164526,
+        "devpos_valneg": 0.8817510903813784,
+        "valpos_devneg": 0.9981387236856014,
+        "valpos_valneg": 0.9961232955826826
+      },
+      "Donut": {
+        "n_dev": 103,
+        "n_val": 82,
+        "devpos_devneg": 0.9982639596893431,
+        "devpos_valneg": 0.9961182977884159,
+        "valpos_devneg": 0.9986863172089765,
+        "valpos_valneg": 0.9968872759562578
+      },
+      "Edge-Loc": {
+        "n_dev": 2000,
+        "n_val": 502,
+        "devpos_devneg": 0.9797601103839015,
+        "devpos_valneg": 0.9611018665083763,
+        "valpos_devneg": 0.9970366409715247,
+        "valpos_valneg": 0.9943601139565206
+      },
+      "Edge-Ring": {
+        "n_dev": 856,
+        "n_val": 1774,
+        "devpos_devneg": 0.9532981310237101,
+        "devpos_valneg": 0.9133008369423312,
+        "valpos_devneg": 0.9753930115837515,
+        "valpos_valneg": 0.9631200620669933
+      },
+      "Loc": {
+        "n_dev": 1451,
+        "n_val": 282,
+        "devpos_devneg": 0.9828213694166382,
+        "devpos_valneg": 0.9649009625518328,
+        "valpos_devneg": 0.9902120281249286,
+        "valpos_valneg": 0.9799910376912794
+      },
+      "Random": {
+        "n_dev": 184,
+        "n_val": 128,
+        "devpos_devneg": 0.9998553971951701,
+        "devpos_valneg": 0.9997702350842782,
+        "valpos_devneg": 0.9999404255854987,
+        "valpos_valneg": 0.999887671481335
+      },
+      "Scratch": {
+        "n_dev": 517,
+        "n_val": 92,
+        "devpos_devneg": 0.9197190511379343,
+        "devpos_valneg": 0.8433804658240327,
+        "valpos_devneg": 0.8520700697809735,
+        "valpos_valneg": 0.7835127005155911
+      },
+      "Near-full": {
+        "n_dev": 70,
+        "n_val": 9,
+        "devpos_devneg": 1.0,
+        "devpos_valneg": 1.0,
+        "valpos_devneg": 1.0,
+        "valpos_valneg": 1.0
+      }
+    },
+    "A_k2k5cal": {
+      "Center": {
+        "n_dev": 618,
+        "n_val": 682,
+        "devpos_devneg": 0.8710202010885698,
+        "devpos_valneg": 0.786519078312371,
+        "valpos_devneg": 0.9953895642481402,
+        "valpos_valneg": 0.992046503819357
+      },
+      "Donut": {
+        "n_dev": 103,
+        "n_val": 82,
+        "devpos_devneg": 0.9963317790690727,
+        "devpos_valneg": 0.9925676480419239,
+        "valpos_devneg": 0.9941739017004315,
+        "valpos_valneg": 0.988908407089611
+      },
+      "Edge-Loc": {
+        "n_dev": 2000,
+        "n_val": 502,
+        "devpos_devneg": 0.9712379603399434,
+        "devpos_valneg": 0.9407377324891175,
+        "valpos_devneg": 0.9951817108823668,
+        "valpos_valneg": 0.9903727656318402
+      },
+      "Edge-Ring": {
+        "n_dev": 856,
+        "n_val": 1774,
+        "devpos_devneg": 0.9433239610255633,
+        "devpos_valneg": 0.883866469543263,
+        "valpos_devneg": 0.955701082209581,
+        "valpos_valneg": 0.9241263501125091
+      },
+      "Loc": {
+        "n_dev": 1451,
+        "n_val": 282,
+        "devpos_devneg": 0.976724526718158,
+        "devpos_valneg": 0.9548813544252739,
+        "valpos_devneg": 0.9754739967729353,
+        "valpos_valneg": 0.9553339301968995
+      },
+      "Random": {
+        "n_dev": 184,
+        "n_val": 128,
+        "devpos_devneg": 0.9995602190052283,
+        "devpos_valneg": 0.999496739560572,
+        "valpos_devneg": 0.99972979258755,
+        "valpos_valneg": 0.9998041979949874
+      },
+      "Scratch": {
+        "n_dev": 517,
+        "n_val": 92,
+        "devpos_devneg": 0.8370744756429299,
+        "devpos_valneg": 0.7037696297141102,
+        "valpos_devneg": 0.7816394122343927,
+        "valpos_valneg": 0.6546765942315743
+      },
+      "Near-full": {
+        "n_dev": 70,
+        "n_val": 9,
+        "devpos_devneg": 0.9997679984370421,
+        "devpos_valneg": 0.9998680912808336,
+        "valpos_devneg": 0.9997679984370421,
+        "valpos_valneg": 0.9998680912808336
+      }
+    },
+    "B_lineL11": {
+      "Center": {
+        "n_dev": 618,
+        "n_val": 682,
+        "devpos_devneg": 0.8118303627175109,
+        "devpos_valneg": 0.6768839361220288,
+        "valpos_devneg": 0.9819212450838872,
+        "valpos_valneg": 0.9646216753490455
+      },
+      "Donut": {
+        "n_dev": 103,
+        "n_val": 82,
+        "devpos_devneg": 0.9965967966950269,
+        "devpos_valneg": 0.9934096867103887,
+        "valpos_devneg": 0.9992462927401082,
+        "valpos_valneg": 0.998419508334379
+      },
+      "Edge-Loc": {
+        "n_dev": 2000,
+        "n_val": 502,
+        "devpos_devneg": 0.9437561633046792,
+        "devpos_valneg": 0.8973198456667986,
+        "valpos_devneg": 0.9801407586417056,
+        "valpos_valneg": 0.9637963119162973
+      },
+      "Edge-Ring": {
+        "n_dev": 856,
+        "n_val": 1774,
+        "devpos_devneg": 0.9405182955428312,
+        "devpos_valneg": 0.9043981541408859,
+        "valpos_devneg": 0.9829958293131477,
+        "valpos_valneg": 0.9740678909044997
+      },
+      "Loc": {
+        "n_dev": 1451,
+        "n_val": 282,
+        "devpos_devneg": 0.9264211490568092,
+        "devpos_valneg": 0.860979209967681,
+        "valpos_devneg": 0.8787284790188836,
+        "valpos_valneg": 0.8227228672652142
+      },
+      "Random": {
+        "n_dev": 184,
+        "n_val": 128,
+        "devpos_devneg": 0.9987265463408522,
+        "devpos_valneg": 0.9978546910755148,
+        "valpos_devneg": 0.9992596364596561,
+        "valpos_valneg": 0.9986984319351009
+      },
+      "Scratch": {
+        "n_dev": 517,
+        "n_val": 92,
+        "devpos_devneg": 0.9235682034052152,
+        "devpos_valneg": 0.8653010414665392,
+        "valpos_devneg": 0.8314910798849867,
+        "valpos_valneg": 0.7673517317320762
+      },
+      "Near-full": {
+        "n_dev": 70,
+        "n_val": 9,
+        "devpos_devneg": 0.9996581029598515,
+        "devpos_valneg": 0.999208547685002,
+        "valpos_devneg": 0.9996581029598515,
+        "valpos_valneg": 0.999208547685002
+      }
+    },
+    "C_k2k3": {
+      "Center": {
+        "n_dev": 618,
+        "n_val": 682,
+        "devpos_devneg": 0.958763233691606,
+        "devpos_valneg": 0.9333049878998296,
+        "valpos_devneg": 0.9982243232744655,
+        "valpos_valneg": 0.9974455741143258
+      },
+      "Donut": {
+        "n_dev": 103,
+        "n_val": 82,
+        "devpos_devneg": 0.99370679459907,
+        "devpos_valneg": 0.9895062131568062,
+        "valpos_devneg": 0.9946758768408237,
+        "valpos_valneg": 0.9912706992127301
+      },
+      "Edge-Loc": {
+        "n_dev": 2000,
+        "n_val": 502,
+        "devpos_devneg": 0.9652946633535215,
+        "devpos_valneg": 0.9433201424614167,
+        "valpos_devneg": 0.9942823460480633,
+        "valpos_valneg": 0.9907691487052712
+      },
+      "Edge-Ring": {
+        "n_dev": 856,
+        "n_val": 1774,
+        "devpos_devneg": 0.9088375149722603,
+        "devpos_valneg": 0.8537276386983198,
+        "valpos_devneg": 0.9374402685111449,
+        "valpos_valneg": 0.9095236310678196
+      },
+      "Loc": {
+        "n_dev": 1451,
+        "n_val": 282,
+        "devpos_devneg": 0.978569733969297,
+        "devpos_valneg": 0.9634204667241393,
+        "valpos_devneg": 0.995069793587023,
+        "valpos_valneg": 0.9919596490292547
+      },
+      "Random": {
+        "n_dev": 184,
+        "n_val": 128,
+        "devpos_devneg": 0.9982691462342483,
+        "devpos_valneg": 0.9978937618646158,
+        "valpos_devneg": 0.998160347803922,
+        "valpos_valneg": 0.9972912338411819
+      },
+      "Scratch": {
+        "n_dev": 517,
+        "n_val": 92,
+        "devpos_devneg": 0.8155343834677146,
+        "devpos_valneg": 0.7161937981470015,
+        "valpos_devneg": 0.7517924377046604,
+        "valpos_valneg": 0.6526979634440793
+      },
+      "Near-full": {
+        "n_dev": 70,
+        "n_val": 9,
+        "devpos_devneg": 0.9997191560027352,
+        "devpos_valneg": 0.9997361825616673,
+        "valpos_devneg": 0.9997191560027352,
+        "valpos_valneg": 0.9997361825616673
+      }
+    }
+  },
+  "subsample_null": {
+    "fuse3": {
+      "Donut": {
+        "n": 82,
+        "n_rep": 2000,
+        "mean": 0.9982637642223808,
+        "ci95": [
+          0.9978346160925099,
+          0.9995313378568178
+        ],
+        "observed": 0.9986863172089765,
+        "frac_below_observed": 0.7935,
+        "observed_valpos_valneg": 0.9968872759562578
+      },
+      "Edge-Loc": {
+        "n": 502,
+        "n_rep": 2000,
+        "mean": 0.9797610898899761,
+        "ci95": [
+          0.9742253122899629,
+          0.98486857493344
+        ],
+        "observed": 0.9970366409715247,
+        "frac_below_observed": 1.0,
+        "observed_valpos_valneg": 0.9943601139565206
+      },
+      "Loc": {
+        "n": 282,
+        "n_rep": 2000,
+        "mean": 0.9826984979695749,
+        "ci95": [
+          0.9771242870433492,
+          0.9876768882017463
+        ],
+        "observed": 0.9902120281249286,
+        "frac_below_observed": 1.0,
+        "observed_valpos_valneg": 0.9799910376912794
+      },
+      "Random": {
+        "n": 128,
+        "n_rep": 2000,
+        "mean": 0.9998561877449754,
+        "ci95": [
+          0.9998103039029683,
+          0.9999104261235287
+        ],
+        "observed": 0.9999404255854987,
+        "frac_below_observed": 0.999,
+        "observed_valpos_valneg": 0.999887671481335
+      },
+      "Scratch": {
+        "n": 92,
+        "n_rep": 2000,
+        "mean": 0.9194696292965416,
+        "ci95": [
+          0.8928372802355904,
+          0.9429314230322869
+        ],
+        "observed": 0.8520700697809735,
+        "frac_below_observed": 0.0,
+        "observed_valpos_valneg": 0.7835127005155911
+      },
+      "Near-full": {
+        "n": 9,
+        "n_rep": 2000,
+        "mean": 1.0,
+        "ci95": [
+          1.0,
+          1.0
+        ],
+        "observed": 1.0,
+        "frac_below_observed": 0.0,
+        "observed_valpos_valneg": 1.0
+      }
+    },
+    "B_lineL11": {
+      "Donut": {
+        "n": 82,
+        "n_rep": 2000,
+        "mean": 0.9965955860585823,
+        "ci95": [
+          0.9960309565731195,
+          0.997660179358949
+        ],
+        "observed": 0.9992462927401082,
+        "frac_below_observed": 1.0,
+        "observed_valpos_valneg": 0.998419508334379
+      },
+      "Edge-Loc": {
+        "n": 502,
+        "n_rep": 2000,
+        "mean": 0.9437181200469199,
+        "ci95": [
+          0.9336542268699939,
+          0.9534325647371441
+        ],
+        "observed": 0.9801407586417056,
+        "frac_below_observed": 1.0,
+        "observed_valpos_valneg": 0.9637963119162973
+      },
+      "Loc": {
+        "n": 282,
+        "n_rep": 2000,
+        "mean": 0.926230948094868,
+        "ci95": [
+          0.911834804906517,
+          0.9399157747293402
+        ],
+        "observed": 0.8787284790188836,
+        "frac_below_observed": 0.0,
+        "observed_valpos_valneg": 0.8227228672652142
+      },
+      "Random": {
+        "n": 128,
+        "n_rep": 2000,
+        "mean": 0.9987302381555189,
+        "ci95": [
+          0.9985234226183208,
+          0.9989589502234542
+        ],
+        "observed": 0.9992596364596561,
+        "frac_below_observed": 1.0,
+        "observed_valpos_valneg": 0.9986984319351009
+      },
+      "Scratch": {
+        "n": 92,
+        "n_rep": 2000,
+        "mean": 0.9231379226728703,
+        "ci95": [
+          0.8931243390344488,
+          0.9509484125677954
+        ],
+        "observed": 0.8314910798849867,
+        "frac_below_observed": 0.0,
+        "observed_valpos_valneg": 0.7673517317320762
+      },
+      "Near-full": {
+        "n": 9,
+        "n_rep": 2000,
+        "mean": 0.9996581029598519,
+        "ci95": [
+          0.9996581029598515,
+          0.9996581029598515
+        ],
+        "observed": 0.9996581029598515,
+        "frac_below_observed": 0.0,
+        "observed_valpos_valneg": 0.999208547685002
+      }
+    }
+  },
+  "size_matched_null": {
+    "fuse3": {
+      "quota": [
+        0,
+        6,
+        3,
+        2,
+        6,
+        9,
+        66
+      ],
+      "short": {
+        "6": 60
+      },
+      "mean": 0.8972509156297384,
+      "ci95": [
+        0.8743112586323694,
+        0.9172243358888899
+      ]
+    },
+    "B_lineL11": {
+      "quota": [
+        0,
+        6,
+        3,
+        2,
+        6,
+        9,
+        66
+      ],
+      "short": {
+        "6": 60
+      },
+      "mean": 0.9013709081188868,
+      "ci95": [
+        0.8753877233214129,
+        0.9255894223346895
+      ]
+    }
+  },
+  "shape_scratch": {
+    "die_size": {
+      "dev_median": 904.0,
+      "val_median": 2393.0,
+      "dev_mean": 1002.9690522243714,
+      "val_mean": 3093.0760869565215,
+      "u": 6092.0,
+      "p": 4.7072097083763866e-30,
+      "significant_bonferroni": true
+    },
+    "n_fail": {
+      "dev_median": 98.0,
+      "val_median": 120.0,
+      "dev_mean": 99.72920696324951,
+      "val_mean": 130.2608695652174,
+      "u": 16182.5,
+      "p": 1.0224594772536498e-06,
+      "significant_bonferroni": true
+    },
+    "fail_ratio": {
+      "dev_median": 0.10283018867924529,
+      "val_median": 0.050928317726832414,
+      "dev_mean": 0.1117244917293535,
+      "val_mean": 0.07981642067644719,
+      "u": 34359.0,
+      "p": 1.0325695018284134e-11,
+      "significant_bonferroni": true
+    },
+    "cc_size": {
+      "dev_median": 18.0,
+      "val_median": 20.0,
+      "dev_mean": 24.613152804642166,
+      "val_mean": 29.565217391304348,
+      "u": 21193.5,
+      "p": 0.09580903429791285,
+      "significant_bonferroni": false
+    },
+    "neighbors": {
+      "dev_median": 1.3253012048192772,
+      "val_median": 1.1380413057961358,
+      "dev_mean": 1.4067711614924994,
+      "val_mean": 1.2766621261869293,
+      "u": 28449.5,
+      "p": 0.0026873306497001595,
+      "significant_bonferroni": true
+    },
+    "elongation": {
+      "dev_median": 4.536390631170243,
+      "val_median": 6.293551139373953,
+      "dev_mean": 4.668066581797058,
+      "val_mean": 7.650488297407011,
+      "u": 13898.5,
+      "p": 2.0724208310243807e-10,
+      "significant_bonferroni": true
+    },
+    "major": {
+      "dev_median": 13.829615423464013,
+      "val_median": 18.843465644661986,
+      "dev_mean": 15.71387655037803,
+      "val_mean": 21.05305554931427,
+      "u": 15801.5,
+      "p": 2.866271484230708e-07,
+      "significant_bonferroni": true
+    }
+  },
+  "shape_none_control": {
+    "die_size": {
+      "dev_median": 845.0,
+      "val_median": 516.0,
+      "p": 0.0
+    },
+    "n_fail": {
+      "dev_median": 77.0,
+      "val_median": 87.0,
+      "p": 9.42433732110935e-45
+    },
+    "fail_ratio": {
+      "dev_median": 0.08762886597938144,
+      "val_median": 0.15445584957780079,
+      "p": 7.06413777100126e-300
+    },
+    "cc_size": {
+      "dev_median": 6.0,
+      "val_median": 8.0,
+      "p": 1.0675750841872082e-117
+    },
+    "neighbors": {
+      "dev_median": 0.7647058823529411,
+      "val_median": 1.1320545339251744,
+      "p": 1.2288542626853997e-201
+    },
+    "elongation": {
+      "dev_median": 2.2835005441209026,
+      "val_median": 2.179449471770337,
+      "p": 9.26866742534163e-05
+    },
+    "major": {
+      "dev_median": 5.183042184579562,
+      "val_median": 6.414228833173503,
+      "p": 2.9455194024156813e-87
+    }
+  }
+}
