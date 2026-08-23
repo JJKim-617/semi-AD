@@ -289,3 +289,54 @@ def test_the_two_coverage_holes_have_plenty_of_unlabeled_wafers():
     for lbl, lo in (("562-776", 100), ("1090-1334", 100)):
         assert c[lbl]["train_none"] < 400
         assert c[lbl]["unlabeled"] > lo * c[lbl]["train_none"]
+
+
+# --- 26차: seed 를 늘리면 나빠진다 (정정 18) ---------------------------------------
+
+def test_seed_scaling_completed_the_pinned_count():
+    """§3 이 16 을 못 박았다. 적은 수로 판정하면 안 되므로 그것부터 확인한다."""
+    r = load("o2_seed_scaling/seed_scaling.json")
+    assert r["n_seeds"] == r["pinned_seeds"] == 16
+    assert r["device"] == "cpu" and r["threads"] == 28, "장치·스레드 수가 재현 조건이다"
+
+
+def test_the_noise_did_shrink():
+    """'seed 가 모자랐다' 는 진단의 전제. 잡음 자체는 실제로 줄었다."""
+    s = load("o2_seed_scaling/seed_scaling.json")["single_seed_spread"]
+    assert s["aupr_sd"] == pytest.approx(0.0043, abs=5e-4)
+    assert s["aupr_sem"] == pytest.approx(0.0011, abs=3e-4)
+    assert s["aupr_sem"] < s["aupr_sd"] / 3
+
+
+def test_more_seeds_makes_the_arm_significantly_worse():
+    """**정정 18 의 핵심.** '못 가른다' 가 아니라 '진다' 이다."""
+    r = load("o2_seed_scaling/seed_scaling.json")
+    e = r["u_eval_aupr"]
+    assert e["hi"] < 0, "CI 전체가 0 아래여야 한다"
+    assert r["fuse5_n"]["aupr_blocked"] < r["fuse3"]["aupr_blocked"]
+    assert r["u_seed_aupr"]["lo"] < 0 < r["u_seed_aupr"]["hi"], "U-seed 는 0 을 포함"
+
+
+def test_the_ensemble_curve_peaks_and_then_declines():
+    """k≈5 봉우리. 단조 개선이었다면 정정 18 을 다시 써야 한다."""
+    c = load("o2_seed_scaling/seed_scaling.json")["curve"]
+    v = [x["aupr_blocked"] for x in c]
+    best_k = c[int(max(range(len(v)), key=lambda i: v[i]))]["k"]
+    assert 3 <= best_k <= 6, best_k
+    assert v[-1] < max(v), "16개가 최고가 아니다"
+    assert v[-1] < v[2], "16개가 3개보다 나쁘다"
+
+
+def test_tail_compression_is_measured_not_asserted():
+    """기작을 이야기로 두지 않았다는 것. 결함의 상위 1% 비율이 실제로 준다."""
+    tc = load("o2_seed_scaling/tail_compression.json")
+    assert tc["1"]["p99_def"] == pytest.approx(0.3701, abs=5e-4)
+    assert tc["6"]["p99_def"] == pytest.approx(0.2140, abs=5e-4)
+    assert tc["16"]["p99_def"] < tc["1"]["p99_def"] * 0.75
+
+
+def test_the_secondary_metric_improves_for_the_fourth_time():
+    """주 지표에서 지면서 부 지표에서 이긴다 — 21, 22, 24, 26차 네 번째."""
+    r = load("o2_seed_scaling/seed_scaling.json")
+    assert r["fuse5_n"]["fpr_at_95tpr"] < r["fuse3"]["fpr_at_95tpr"]
+    assert r["u_eval_fpr"]["hi"] < 0, "FPR@95TPR 은 유의하게 낫다"
