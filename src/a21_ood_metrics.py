@@ -217,3 +217,41 @@ def subsample_auroc_null(pos_score, neg_score, n: int, n_rep: int = 2000,
         out["observed"] = float(observed)
         out["frac_below_observed"] = float((vals < observed).mean())
     return out
+
+
+def paired_fpr_at_tpr_diff_ci(score_a, score_b, label, target: float = 0.95,
+                              n_boot: int = 300, seed: int = 0):
+    """**`FPR@TPR` 로 하는 짝지은 비교.** 낮을수록 좋은 지표라 부호가 반대다.
+
+    `candidate/ood_high_recall_arm.md` §3 이 그 arm 계열의 주 지표를 `FPR@95TPR` 로
+    선언했고 §9.3 이 이 검정을 못 박았다. **지표를 바꿨으면 검정도 바꿔야 한다** —
+    정정 9 가 정확히 그 실수였다(주 지표를 blocked 로 바꾸고 검정은 순서 의존으로 뒀다).
+
+    재표본 인덱스를 **한 번 뽑아 두 점수에 똑같이** 먹인다. 안 그러면 같은 채점기끼리도
+    차이가 퍼진다(`test_identical_scores_give_exactly_zero_difference` 가 그걸 잡는다).
+
+    `a - b` 가 **음수면 a 가 이긴 것**이고, **CI 상한이 0 미만**이어야 이겼다고 말한다.
+    재표본에 한쪽 클래스만 남으면 `FPR@TPR` 이 정의되지 않으므로 그 회차는 뺀다.
+    """
+    a = np.asarray(score_a, np.float64)
+    b = np.asarray(score_b, np.float64)
+    l = np.asarray(label, np.int64)
+    n = len(l)
+    rng = np.random.default_rng(seed)
+    d = np.empty(n_boot, np.float64)
+    for i in range(n_boot):
+        idx = rng.integers(0, n, n)
+        li = l[idx]
+        s = li.sum()
+        if s == 0 or s == n:
+            d[i] = np.nan
+            continue
+        d[i] = fpr_at_tpr(a[idx], li, target) - fpr_at_tpr(b[idx], li, target)
+    lo = float(np.nanpercentile(d, 2.5))
+    hi = float(np.nanpercentile(d, 97.5))
+    finite = d[~np.isnan(d)]
+    if len(finite) == 0:
+        return float("nan"), float("nan"), float("nan")
+    # 양측 p: 0 을 넘어가는 쪽 꼬리의 두 배(부호 검정식 경험 p)
+    p = 2.0 * min((finite <= 0).mean(), (finite >= 0).mean())
+    return lo, hi, float(min(p, 1.0))

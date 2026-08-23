@@ -150,3 +150,142 @@ def test_large_wafers_are_flagged_more_often():
     b = load("o1_size_fa/size_falsealarm.json")["bins"]["0.95"]
     assert b[">1600"]["fa_rate"] > b["562-776"]["fa_rate"] * 3
     assert b[">1600"]["ci95"][0] > b["1334-1600"]["ci95"][1], "CI 가 안 겹친다"
+
+
+# --- 12차: Scratch 경고등 -----------------------------------------------------------
+
+def test_scratch_cross_decomposition():
+    """2x2 교차 분해. 보고서가 인용하는 네 숫자를 그대로 박는다."""
+    c = load("o1_scratch_shift/scratch_shift.json")["cross"]["fuse3"]["Scratch"]
+    assert c["devpos_devneg"] == pytest.approx(0.9197, abs=5e-5)
+    assert c["devpos_valneg"] == pytest.approx(0.8434, abs=5e-5)
+    assert c["valpos_devneg"] == pytest.approx(0.8521, abs=5e-5)
+    assert c["valpos_valneg"] == pytest.approx(0.7835, abs=5e-5)
+    assert c["n_val"] == 92 and c["n_dev"] == 517
+
+
+def test_scratch_is_the_only_class_where_val_positives_are_harder():
+    """**이것이 12차의 판정 근거다.** 다른 클래스는 val 양성이 더 쉬워진다."""
+    cross = load("o1_scratch_shift/scratch_shift.json")["cross"]["fuse3"]
+    harder = [c for c, r in cross.items()
+              if r["valpos_devneg"] < r["devpos_devneg"] - 1e-9]
+    assert harder == ["Scratch"], harder
+
+
+def test_scratch_null_excludes_the_observation():
+    """dev 부표집 귀무 2,000회 중 관측값 아래가 0회."""
+    n = load("o1_scratch_shift/scratch_shift.json")["subsample_null"]["fuse3"]["Scratch"]
+    assert n["n"] == 92 and n["n_rep"] == 2000
+    assert n["ci95"][0] == pytest.approx(0.8928, abs=5e-4)
+    assert n["frac_below_observed"] == 0.0
+
+
+# --- 정정 17: 표와 문장이 어긋나면 여기서 깨진다 ---------------------------------------
+
+def test_correction_17_train_none_and_dev_have_different_size_distributions():
+    """**정정 17 은 "숫자는 표에 이미 있었는데 읽기가 틀렸다" 는 종류였다.**
+
+    그 종류를 막으려면 **문장이 인용하는 비율을 원자료에서 다시 세는 시험**이 있어야 한다.
+    여기서는 결과 파일이 아니라 **캐시에서 직접 센다** — 표가 아니라 사실을 박는 것이다.
+    """
+    import numpy as np
+    cache = ROOT / "data" / "wm811k" / "cache"
+    if not (cache / "wm811k_64pad.npz").exists():
+        pytest.skip("데이터 캐시 미연결")
+    sys.path.insert(0, str(ROOT / "src"))
+    from a38_sealed_holdout import load_partition
+    from a23_ood_template_eval import BINS
+
+    d = np.load(cache / "wm811k_64pad.npz", allow_pickle=True)
+    y = d["y"].astype(np.int64)
+    size = d["die_size"].astype(np.float64)
+    sp = np.load(cache / "splits_v1.npz")
+    trn = sp["train"][y[sp["train"]] == 0]
+    dev = load_partition("test_dev")
+    devn = dev[y[dev] == 0]
+
+    edges = np.array(BINS[1:-1], np.float64)
+    bt = np.searchsorted(edges, size[trn], side="right")
+    bd = np.searchsorted(edges, size[devn], side="right")
+    # 구간 1 = 400-562
+    assert (bt == 1).mean() == pytest.approx(0.773, abs=0.002), "train-none 의 400-562 비중"
+    assert (bd == 1).mean() == pytest.approx(0.138, abs=0.002), "dev 정상의 400-562 비중"
+    assert np.median(size[trn]) == pytest.approx(518.0)
+    assert np.median(size[devn]) == pytest.approx(844.0)
+    # 문장의 핵심: 참조가 한 구간에 몰려 있고 평가는 퍼져 있다
+    assert (bt == 1).mean() > 5 * (bd == 1).mean()
+
+
+def test_correction_13_dev_has_almost_no_large_wafer_scratches():
+    """정정 13 이 인용하는 6장 / 517장."""
+    import numpy as np
+    cache = ROOT / "data" / "wm811k" / "cache"
+    if not (cache / "wm811k_64pad.npz").exists():
+        pytest.skip("데이터 캐시 미연결")
+    sys.path.insert(0, str(ROOT / "src"))
+    from a38_sealed_holdout import load_partition
+    d = np.load(cache / "wm811k_64pad.npz", allow_pickle=True)
+    y = d["y"].astype(np.int64)
+    size = d["die_size"].astype(np.float64)
+    dev = load_partition("test_dev")
+    scr = dev[y[dev] == 7]
+    assert len(scr) == 517
+    assert int((size[scr] >= 1600).sum()) == 6
+
+
+# --- 24차: 고재현율 목적함수 -----------------------------------------------------------
+
+def test_high_recall_verdict_nothing_is_adopted():
+    """**세 arm 다 무승부이거나 기각이다.** 하나라도 통과하면 판정을 다시 써야 한다."""
+    r = load("o2_high_recall/high_recall_metrics.json")
+    # H4 앙상블: CI 는 0 을 배제하는데 이득이 seed 폭보다 작다
+    assert r["h4_gain_vs_range"]["exceeds"] is False
+    assert r["paired_fpr"]["H4 fuse5 앙상블"]["hi"] < 0
+    # H1: 세 seed 점추정은 전부 대조보다 낮지만 평균 이득 < seed 폭
+    assert r["h1_worst"] < r["metrics"]["H3 fuse3 (대조)"]["fpr_at_95tpr"]
+    h1 = [r["metrics"]["H1 fuse4 s%d" % s]["fpr_at_95tpr"] for s in (0, 1, 2)]
+    gain = r["metrics"]["H3 fuse3 (대조)"]["fpr_at_95tpr"] - sum(h1) / 3
+    assert gain < r["seed_range_21"], "이득이 seed 폭보다 작다는 것이 판정 근거다"
+
+
+def test_tippett_wins_the_objective_but_cannot_be_operated_there():
+    """**24차에서 가장 날카로운 줄.** 이기는데 그 운영점에서 문턱을 못 고른다."""
+    r = load("o2_high_recall/high_recall_metrics.json")
+    t = r["metrics"]["H2 Tippett 최대"]
+    f = r["metrics"]["H3 fuse3 (대조)"]
+    assert r["paired_fpr"]["H2 Tippett 최대"]["hi"] < 0, "선언된 목적함수를 이긴다"
+    assert t["n_tied_at_95"] == 8776 and f["n_tied_at_95"] == 23
+    assert t["n_tied_at_95"] > r["tie_limit"]
+    assert r["aupr_drop"]["H2 Tippett 최대"] > r["aupr_drop_limit"]
+
+
+def test_one_fuse4_seed_is_not_distinguishable_from_the_control():
+    """사전등록의 약점을 박아 둔다 — 조건 1 은 점추정 규칙이라 이걸 못 잡았다."""
+    r = load("o2_high_recall/high_recall_metrics.json")["paired_fpr"]["H1 fuse4 s0"]
+    assert r["lo"] < 0 < r["hi"], "seed 0 의 CI 는 0 을 포함한다"
+
+
+# --- 25차: 미라벨 참조의 전제 -------------------------------------------------------
+
+def test_unlabeled_is_closer_to_the_evaluation_distribution():
+    """25차의 전제. 이게 깨지면 그 방향 전체가 무의미해진다."""
+    r = load("o1_unlabeled_size/unlabeled_size.json")
+    assert r["unlabeled_is_closer"] is True
+    tv = r["tv_to_dev_normals"]
+    assert tv["미라벨 638K"] < tv["train-none (현행 참조)"]
+    assert tv["train-none (현행 참조)"] / tv["미라벨 638K"] > 1.9
+
+
+def test_unlabeled_is_skewed_the_other_way():
+    """**예측 밖의 사실.** 그냥 갈아 끼우면 반대 방향으로 틀린다."""
+    h = load("o1_unlabeled_size/unlabeled_size.json")["hist"]
+    assert h["미라벨 638K"][6] > 0.30, ">1600 비중이 크다"
+    assert h["test_dev 정상 (평가 대상)"][6] < 0.01, "dev 정상은 거의 없다"
+
+
+def test_the_two_coverage_holes_have_plenty_of_unlabeled_wafers():
+    """U3 이 자료 부족으로 막히지 않는다는 것."""
+    c = load("o1_unlabeled_size/unlabeled_size.json")["per_bin_counts"]
+    for lbl, lo in (("562-776", 100), ("1090-1334", 100)):
+        assert c[lbl]["train_none"] < 400
+        assert c[lbl]["unlabeled"] > lo * c[lbl]["train_none"]
