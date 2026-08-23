@@ -497,5 +497,35 @@
     "backbone": "resnet18",
     "padding_mode": "reflect",
     "augment": ""
+  },
+  {
+    "tag": "e24_padtr_s0",
+    "ckpt": "result/cls_baseline/e24_padtr_s0_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "resnet18",
+    "backbone": "resnet18",
+    "padding_mode": "reflect",
+    "augment": "translate"
+  },
+  {
+    "tag": "e24_padtr_s1",
+    "ckpt": "result/cls_baseline/e24_padtr_s1_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "resnet18",
+    "backbone": "resnet18",
+    "padding_mode": "reflect",
+    "augment": "translate"
+  },
+  {
+    "tag": "e24_padtr_s2",
+    "ckpt": "result/cls_baseline/e24_padtr_s2_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "resnet18",
+    "backbone": "resnet18",
+    "padding_mode": "reflect",
+    "augment": "translate"
   }
 ]
