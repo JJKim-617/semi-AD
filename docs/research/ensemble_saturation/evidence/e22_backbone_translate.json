@@ -1,0 +1,112 @@
+{
+  "single": {
+    "e17_translate_s0": 0.7674422882031938,
+    "e17_translate_s1": 0.7607415252399296,
+    "e17_translate_s2": 0.7639743498980948,
+    "e17_translate_s3": 0.7659841779307123,
+    "e18_shufflenet_v2_s0": 0.7410783791073133,
+    "e18_shufflenet_v2_s1": 0.7171052960494467,
+    "e18_mobilenet_v3_s0": 0.7395836397347846,
+    "e18_mobilenet_v3_s1": 0.7115501641481434,
+    "e18_efficientnet_b0_s0": 0.7153019648980457,
+    "e18_efficientnet_b0_s1": 0.7202180138405176,
+    "e8_pad": 0.7485063528070391,
+    "e10_pad_s2": 0.7307845808232841,
+    "e22_shufflenet_v2_tr_s0": 0.7723959172636634,
+    "e22_shufflenet_v2_tr_s1": 0.7621863915958322,
+    "e22_shufflenet_v2_tr_s2": 0.769689672223604,
+    "e22_mobilenet_v3_tr_s0": 0.7669892370549853,
+    "e22_mobilenet_v3_tr_s1": 0.775249651100292,
+    "e22_mobilenet_v3_tr_s2": 0.7641155414878603,
+    "e22_efficientnet_b0_tr_s0": 0.7661994933285965,
+    "e22_efficientnet_b0_tr_s1": 0.7711185128280944,
+    "e22_efficientnet_b0_tr_s2": 0.7681841571591933
+  },
+  "leak": {
+    "e17_translate_s0": 875,
+    "e17_translate_s1": 1191,
+    "e17_translate_s2": 1527,
+    "e17_translate_s3": 1168,
+    "e18_shufflenet_v2_s0": 2075,
+    "e18_shufflenet_v2_s1": 3370,
+    "e18_mobilenet_v3_s0": 1246,
+    "e18_mobilenet_v3_s1": 3531,
+    "e18_efficientnet_b0_s0": 3939,
+    "e18_efficientnet_b0_s1": 3775,
+    "e8_pad": 1861,
+    "e10_pad_s2": 1989,
+    "e22_shufflenet_v2_tr_s0": 1031,
+    "e22_shufflenet_v2_tr_s1": 1090,
+    "e22_shufflenet_v2_tr_s2": 1063,
+    "e22_mobilenet_v3_tr_s0": 1160,
+    "e22_mobilenet_v3_tr_s1": 1290,
+    "e22_mobilenet_v3_tr_s2": 1214,
+    "e22_efficientnet_b0_tr_s0": 937,
+    "e22_efficientnet_b0_tr_s1": 1184,
+    "e22_efficientnet_b0_tr_s2": 974
+  },
+  "loo": {
+    "e17_translate_s0": -0.0012613538266500839,
+    "e17_translate_s1": -0.0021806775160519245,
+    "e17_translate_s2": 0.0017061426393987593,
+    "e17_translate_s3": -0.0013909104904789027,
+    "e22_shufflenet_v2_tr_s0": 0.0005724758260997609,
+    "e22_shufflenet_v2_tr_s1": -0.002531313609274166,
+    "e22_shufflenet_v2_tr_s2": -0.0002608899352747329,
+    "e22_mobilenet_v3_tr_s0": 9.264177312358808e-05,
+    "e22_mobilenet_v3_tr_s1": 0.004540504432628841,
+    "e22_mobilenet_v3_tr_s2": -6.39464315502029e-05,
+    "e22_efficientnet_b0_tr_s0": -0.0010788826685267743,
+    "e22_efficientnet_b0_tr_s1": 0.0005815200312994095,
+    "e22_efficientnet_b0_tr_s2": 0.0012746897752567987
+  },
+  "group_loo_e22": 0.00034742213264250235,
+  "group_loo_ctrl": -0.0007816997984455378,
+  "e22": [
+    "e22_shufflenet_v2_tr_s0",
+    "e22_shufflenet_v2_tr_s1",
+    "e22_shufflenet_v2_tr_s2",
+    "e22_mobilenet_v3_tr_s0",
+    "e22_mobilenet_v3_tr_s1",
+    "e22_mobilenet_v3_tr_s2",
+    "e22_efficientnet_b0_tr_s0",
+    "e22_efficientnet_b0_tr_s1",
+    "e22_efficientnet_b0_tr_s2"
+  ],
+  "loo_by_seedset": {
+    "0": {
+      "e22": 0.0013918639651140003,
+      "ctrl": -0.0010438979738355096,
+      "members": {
+        "e22_shufflenet_v2_tr_s0": 0.0011229223759791445,
+        "e22_mobilenet_v3_tr_s0": 0.0026180756115004402,
+        "e22_efficientnet_b0_tr_s0": 0.00043459390786241653
+      }
+    },
+    "1": {
+      "e22": 0.002149625912679124,
+      "ctrl": -0.0016122194345092507,
+      "members": {
+        "e22_shufflenet_v2_tr_s1": -0.0029987450865447407,
+        "e22_mobilenet_v3_tr_s1": 0.007551732196211525,
+        "e22_efficientnet_b0_tr_s1": 0.001895890628370589
+      }
+    },
+    "2": {
+      "e22": 0.0020441267846552525,
+      "ctrl": -0.0015330950884914765,
+      "members": {
+        "e22_shufflenet_v2_tr_s2": 0.00017175563619401904,
+        "e22_mobilenet_v3_tr_s2": 0.001865145120500326,
+        "e22_efficientnet_b0_tr_s2": 0.004095479597271412
+      }
+    }
+  },
+  "errcorr": {
+    "E22 x e17_translate (백본이 다름)": 0.7461339696034432,
+    "E22 끼리, 백본이 다름": 0.7659965856277288,
+    "E22 끼리, 같은 백본 seed 만 다름": 0.7805063083895054,
+    "e17_translate 끼리 (seed 만)": 0.7954605161729221,
+    "E18 백본 x e17_translate (참고)": 0.6190297326112973
+  }
+}
