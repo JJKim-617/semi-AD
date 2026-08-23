@@ -112,16 +112,30 @@ if __name__ == "__main__":
                 (OUT / ("layer_depth_d%s.json" % a.depths.replace(",", ""))).write_text(
                     json.dumps(rep, ensure_ascii=False, indent=2))
 
+    # 깊이 집합을 골라 돌릴 수 있으므로 **있는 깊이만** 표에 낸다.
+    # (처음 판은 깊이 1과 3이 있다고 가정해서 `--depths 2` 만 돌렸을 때 터졌다.)
     print("\n== 반증 조건 1: 붕괴 비율 (학습 유효차원 / 무작위 유효차원) ==")
-    print("%6s %12s %12s %14s" % ("seed", "깊이1(3x3)", "깊이3(7x7)", "1층이 덜 무너지나"))
-    ok = []
+    print("%6s " % "seed" + " ".join(
+        "%16s" % ("깊이%d (RF %dx%d)" % (d, 2 * d + 1, 2 * d + 1)) for d in depths))
+    ratios = {}
     for seed in seeds:
-        r1 = rep["trained_d1_s%d" % seed]["eff_dim"] / rep["random_d1_s%d" % seed]["eff_dim"]
-        r3 = rep["trained_d3_s%d" % seed]["eff_dim"] / rep["random_d3_s%d" % seed]["eff_dim"]
-        ok.append(r1 > r3)
-        print("%6d %12.4f %12.4f %14s" % (seed, r1, r3, "예" if r1 > r3 else "아니오"))
-    print("  세 seed 전부 '예' 인가: %s" % ("예 — 기작 주장 유지" if all(ok)
-                                       else "아니오 — **기작 주장 기각**"))
+        row = []
+        for dep in depths:
+            kt = "trained_d%d_s%d" % (dep, seed)
+            kr = "random_d%d_s%d" % (dep, seed)
+            if kt in rep and kr in rep:
+                ratios[(seed, dep)] = rep[kt]["eff_dim"] / rep[kr]["eff_dim"]
+                row.append("%16.4f" % ratios[(seed, dep)])
+            else:
+                row.append("%16s" % "-")
+        print("%6d " % seed + " ".join(row))
+    if len(depths) >= 2:
+        lo, hi = min(depths), max(depths)
+        ok = [ratios.get((s, lo), 0.0) > ratios.get((s, hi), 1.0) for s in seeds]
+        verdict = "예 — 기작 주장 유지" if all(ok) else "아니오 — **기작 주장 기각**"
+        print("  얕은 층(%d)이 깊은 층(%d)보다 덜 무너지나 — 세 seed 전부: %s"
+              % (lo, hi, verdict))
+    rep["_collapse_ratios"] = {"s%d_d%d" % (s, d): v for (s, d), v in ratios.items()}
 
     print("\n== 성능 (판정에 쓰지 않는다. §3 의 교란 때문) ==")
     print("%-18s %10s %10s %10s %10s" % ("arm", "유효차원", "AUPR블록", "AUROC", "FPR@95"))
