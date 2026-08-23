@@ -112,6 +112,22 @@ def required_threshold(loo_values, g: int, alpha: float = 0.05) -> float:
     return float(srt[k])
 
 
+def permutation_p_two_sided(values, group_idx) -> float:
+    """양측 치환 p — **"다른가" 를 물을 때 쓴다**(어느 쪽이 큰가가 아니라).
+
+    p = P(|귀무 군평균 - 전체평균| >= |관측 군평균 - 전체평균|).
+    부호를 뒤집어도 같은 값이 나온다.
+    """
+    v = np.asarray(values, dtype=np.float64)
+    idx = list(group_idx)
+    if any(i < 0 or i >= len(v) for i in idx):
+        raise ValueError("군 색인이 범위를 벗어난다")
+    mu = v.mean()
+    obs = abs(v[idx].mean() - mu)
+    means, _ = _null_means(v, len(idx))
+    return float((np.abs(means - mu) >= obs - 1e-15).mean())
+
+
 def permutation_p(loo_values, group_idx) -> float:
     """관측된 군 평균 LOO 가 귀무분포에서 얼마나 흔한가 (단측 p 값).
 

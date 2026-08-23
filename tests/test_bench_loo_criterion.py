@@ -138,3 +138,33 @@ def test_small_pool_has_no_resolution():
     total2, pmin2 = null_resolution(5, 3)
     assert total2 == 10 and pmin2 == pytest.approx(0.1)
     assert pmin2 > 0.05         # **어떤 결과도 p<=0.05 를 못 만든다**
+
+
+# --- 양측 치환 p (E27 확장에서 필요해졌다) ----------------------------------
+
+def test_two_sided_p_is_symmetric_under_sign_flip():
+    """양측이면 부호를 뒤집어도 같은 p 가 나와야 한다. 그것이 '양측' 의 뜻이다."""
+    from bench_loo_criterion import permutation_p_two_sided
+    v = np.array([-0.003, -0.001, 0.000, 0.001, 0.002, 0.004])
+    idx = [0, 1]
+    assert permutation_p_two_sided(v, idx) == pytest.approx(
+        permutation_p_two_sided(-v, idx))
+
+
+def test_two_sided_p_is_small_for_an_extreme_group():
+    from bench_loo_criterion import permutation_p_two_sided
+    v = np.array([-0.005, -0.004, -0.003, -0.002, 0.002, 0.003, 0.004, 0.005])
+    assert permutation_p_two_sided(v, [6, 7]) < 0.20      # 가장 큰 둘
+    assert permutation_p_two_sided(v, [0, 1]) < 0.20      # 가장 작은 둘도 같은 값
+
+
+def test_two_sided_p_is_large_for_a_typical_group():
+    from bench_loo_criterion import permutation_p_two_sided
+    v = np.array([-0.003, -0.002, -0.001, 0.001, 0.002, 0.003])
+    assert permutation_p_two_sided(v, [2, 3]) > 0.5       # 한가운데
+
+
+def test_two_sided_p_never_exceeds_one():
+    from bench_loo_criterion import permutation_p_two_sided
+    v = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0])         # 전부 동점
+    assert permutation_p_two_sided(v, [0, 1]) == pytest.approx(1.0)
