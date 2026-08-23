@@ -386,5 +386,32 @@
     "line_ls": [
       11
     ]
+  },
+  {
+    "tag": "e22_efficientnet_b0_tr_s0",
+    "ckpt": "result/cls_baseline/e22_efficientnet_b0_tr_s0_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "efficientnet_b0",
+    "backbone": "efficientnet_b0",
+    "augment": "translate"
+  },
+  {
+    "tag": "e22_mobilenet_v3_tr_s0",
+    "ckpt": "result/cls_baseline/e22_mobilenet_v3_tr_s0_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "mobilenet_v3",
+    "backbone": "mobilenet_v3",
+    "augment": "translate"
+  },
+  {
+    "tag": "e22_shufflenet_v2_tr_s0",
+    "ckpt": "result/cls_baseline/e22_shufflenet_v2_tr_s0_best.pt",
+    "cache": "data/wm811k/cache/wm811k_64pad.npz",
+    "representation": "pad64",
+    "architecture": "shufflenet_v2",
+    "backbone": "shufflenet_v2",
+    "augment": "translate"
   }
 ]

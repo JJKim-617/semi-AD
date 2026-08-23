@@ -180,6 +180,32 @@ def main():
     verdict = "채택" if g22 >= H3_LINE else "기각"
     print("  사전 등록: 군 평균 LOO >= %+.4f  ->  **H3 %s**" % (H3_LINE, verdict))
 
+    # 사전 등록한 한계 3: 9개를 한꺼번에 넣으면 서로가 서로의 LOO 를 깎는다.
+    # 백본당 1 seed 만 넣은 풀에서도 재고, seed 집합 셋을 전부 돌려 사후 선택을 막는다.
+    print("\n== H3 (b) — 백본당 1 seed 만 넣은 풀 (사전 등록한 한계 3) ==")
+    subs = {}
+    for s in SEEDS:
+        sel = [t for t in e22 if t.endswith(f"_s{s}")]
+        if len(sel) < 2:
+            continue
+        pool2 = CTRL + sel
+        sc2 = {}
+        for k in (2, 3, 4):
+            for c in itertools.combinations(pool2, k):
+                sc2[c] = float(evaluate(
+                    ty, np.mean([P[t] for t in c], 0).argmax(1), 9)["macro_f1"])
+        l2 = {t: float(np.mean([v["delta"] for v in
+                                leave_one_out_delta(sc2, t).values()])) for t in pool2}
+        g = float(np.mean([l2[t] for t in sel]))
+        c = float(np.mean([l2[t] for t in CTRL]))
+        subs[s] = dict(e22=g, ctrl=c, members={t: l2[t] for t in sel})
+        print("  seed %d 집합 (%d개): E22 군 LOO %+.4f   대조군 %+.4f" % (
+            s, len(sel), g, c))
+    if subs:
+        mb = float(np.mean([v["e22"] for v in subs.values()]))
+        print("  [seed 집합 평균] E22 %+.4f  ->  **H3(b) %s**" % (
+            mb, "채택" if mb >= H3_LINE else "기각"))
+
     print("\n== 참고 — 백본별 LOO ==")
     for bb in BACKBONES:
         sub = [t for t in e22 if bb in t]
@@ -200,8 +226,48 @@ def main():
             name, len(tags), m["macro_f1"], m["accuracy"],
             int(((ty == 0) & (pm.argmax(1) != 0)).sum())))
 
+    # --- H4. 풀 재구성 --------------------------------------------------------
+    # 사전 등록: 0.7931 + 0.002(풀 구성 잡음) = 0.7951 을 넘어야 "기록이 올랐다" 고 쓴다.
+    import glob as _glob
+    TTA, tty = {}, None
+    for _p in sorted(_glob.glob(f"{POSTHOC}/*_tta_logits.npz")):
+        _t = os.path.basename(_p).replace("_logits.npz", "")
+        _d = np.load(_p)
+        tty = _d["test_y"] if tty is None else tty
+        _z = _d["test_logits"].astype(np.float32)
+        _e = np.exp(_z - _z.max(1, keepdims=True))
+        TTA[_t] = _e / _e.sum(1, keepdims=True)
+    e22t = [t + "_tta" for t in e22 if t + "_tta" in TTA]
+    if not e22t:
+        print("\n== H4 — E22 의 TTA 로짓이 아직 없다 (a17_tta 를 먼저 돌려라) ==")
+    else:
+        print("\n== H4 — 풀 재구성 (TTA 판). 사전 등록선 0.7951 ==")
+        # 17차의 '현재 기준선' 정의 그대로: e20/e21 을 뺀 TTA 판 전부 = 18개
+        BASE = [t for t in TTA if not t.startswith(("e20_", "e21_", "e22_", "e23_"))]
+        BB_T = [t for t in BASE if t.startswith("e18_")]
+        BASE_NOBB = [t for t in BASE if not t.startswith("e18_")]
+
+        def ens_t(tags, name):
+            tags = [t for t in tags if t in TTA]
+            if not tags:
+                return
+            pm = np.mean([TTA[t] for t in tags], 0)
+            m = evaluate(tty, pm.argmax(1), 9)
+            mark = " <- 사전 등록선 넘음" if m["macro_f1"] >= 0.7951 else ""
+            print("  %-40s n=%2d  macro-F1 %.4f  acc %.4f  누출 %5d%s" % (
+                name, len(tags), m["macro_f1"], m["accuracy"],
+                int(((tty == 0) & (pm.argmax(1) != 0)).sum()), mark))
+            return float(m["macro_f1"])
+
+        ens_t(BASE, "현재 기준선 (17차의 TTA 18개)")
+        ens_t(BASE + e22t, "기준선 + E22 전부")
+        ens_t(BASE_NOBB + e22t, "**E18 백본을 E22 로 교체**")
+        ens_t(e22t, "E22 만")
+        ens_t([t for t in BASE if t.startswith("e17_translate")] + e22t,
+              "translate 4 + E22")
+
     json.dump(dict(single=single, leak=leak, loo=loo, group_loo_e22=g22,
-                   group_loo_ctrl=gct, e22=e22,
+                   group_loo_ctrl=gct, e22=e22, loo_by_seedset=subs,
                    errcorr={n: (float(v.mean()) if len(v) else None)
                             for n, v in rows}),
               open("result/posthoc/e22_backbone_translate.json", "w"),
