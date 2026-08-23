@@ -93,7 +93,7 @@ if __name__ == "__main__":
         log("ep=%2d  AUPRblk %.4f  AUROC %.4f  FPR@95 %.4f  유효차원 %5.2f  거리평균 %.5f  CE %s"
             % (ep, r["aupr_blocked"], r["auroc"], r["fpr_at_95tpr"], ed, r["knn_mean"],
                "%.4f" % r["final_masked_ce"] if r["final_masked_ce"] else "-"))
-        (OUT / "epoch_curve.json").write_text(json.dumps(rep, ensure_ascii=False, indent=2))
+        (OUT / ("epoch_curve_s%d.json" % a.seed)).write_text(json.dumps(rep, ensure_ascii=False, indent=2))
 
     print("\n%6s %8s %10s %9s %9s %10s %11s %9s"
           % ("epoch", "maskedCE", "AUPR블록", "AUROC", "FPR@95", "유효차원", "kNN거리평균", "고유값"))
@@ -107,4 +107,4 @@ if __name__ == "__main__":
     for ep in eps:
         r = rep["ep%d" % ep]
         print("%6d " % ep + " ".join("%10.4f" % r["per_class"][c] for c in NAMES[1:]))
-    log("저장 완료 → %s" % (OUT / "epoch_curve.json"))
+    log("저장 완료 → %s" % (OUT / ("epoch_curve_s%d.json" % a.seed)))
