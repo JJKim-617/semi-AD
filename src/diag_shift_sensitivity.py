@@ -100,7 +100,9 @@ def main():
     rows = {}
     for e in entries:
         try:
-            m = build_model(num_classes=9, backbone=e.get("backbone", "resnet18"))
+            # padding_mode 를 빼면 E24 체크포인트가 zeros 모델에 실려 **조용히 틀린다.**
+            m = build_model(num_classes=9, backbone=e.get("backbone", "resnet18"),
+                            padding_mode=e.get("padding_mode", "zeros"))
             m.load_state_dict(torch.load(e["ckpt"], map_location="cpu",
                                          weights_only=True))
             m = m.cuda().eval()
@@ -112,7 +114,8 @@ def main():
             shift=mean_total_variation(p0, probs(m, xt)),
             noise=mean_total_variation(p0, probs(m, xn)),
             rot=mean_total_variation(p0, probs(m, xr)),
-            augment=e.get("augment", ""), backbone=e.get("backbone", "resnet18"))
+            augment=e.get("augment", ""), backbone=e.get("backbone", "resnet18"),
+            padding=e.get("padding_mode", "zeros"))
         del m
         torch.cuda.empty_cache()
         print(f"  {e['tag']:<30} 이동 {rows[e['tag']]['shift']:.4f} "
@@ -153,6 +156,8 @@ def main():
     for t in have:
         g = rows[t]["augment"] or ("백본" if rows[t]["backbone"] != "resnet18"
                                    else "무증강 resnet18")
+        if rows[t].get("padding", "zeros") != "zeros":
+            g = f"reflect+{g}" if rows[t]["augment"] else "reflect (증강없음)"
         groups.setdefault(g, []).append(t)
     print(f"  {'군':<22}{'n':>3}{'이동':>9}{'회전':>9}{'잡음':>9}"
           f"{'이동/잡음':>11}{'누출':>9}")
