@@ -88,12 +88,17 @@ def gather_bank(enc, X, idx, n, seed, device):
     starts = np.concatenate([[0], np.cumsum(cnt)])
     wafer_of = np.searchsorted(starts, take, side="right") - 1
     local = take - starts[wafer_of]
-    feats = np.empty((len(take), M.FEAT_DIM), np.float32)
+    feats = None
     for w in np.unique(wafer_of):
         sel = wafer_of == w
         f = encode_chunk(enc, X[idx[w:w + 1]], device)[0]
         v = M.valid_window_mask(X[idx[w:w + 1]], M.RF)[0]
+        if feats is None:
+            # **특징 차원을 하드코딩하지 않는다** — 깊이별 특징은 채널 수가 다르다.
+            feats = np.empty((len(take), f.shape[-1]), np.float32)
         feats[sel] = f[v][local[sel]]
+    if feats is None:
+        raise ValueError('유효 창이 있는 웨이퍼가 하나도 없어 뱅크를 못 만든다')
     return feats, cnt, tot
 
 
@@ -111,7 +116,9 @@ def score_partition(enc, X, idx, bank, device, k=M.KNN_K):
             if v[i].any():
                 sel = f[i][v[i]]
             else:
-                sel = f[i].reshape(-1, M.FEAT_DIM)
+                # 유효 창이 없으면 전 위치로 되돌린다(§10.2). **특징 차원을
+                # 하드코딩하지 않는다** — 깊이별 특징은 채널 수가 다르다.
+                sel = f[i].reshape(-1, f.shape[-1])
                 fb.append(i)
             q.append(sel)
             owner.append(np.full(len(sel), i))
@@ -158,6 +165,42 @@ def train_encoder(enc, X, idx, seed, epochs, device, batch=M.BATCH, lr=M.LR):
         hist.append({"epoch": ep, "masked_ce": tot / seen})
         log("    ep%2d  masked CE %.4f" % (ep, tot / seen))
     return hist
+
+
+# --- one-class 진입점 ------------------------------------------------------------
+
+def select_train_none(y, train_idx) -> np.ndarray:
+    """train 인덱스에서 **정상만** 고른다. 이 함수가 one-class 의 유일한 문이다.
+
+    라벨은 **여기서만** 읽는다. 아래 `o2_scores` 는 이 함수가 돌려준 인덱스만 쓰므로,
+    결함 웨이퍼의 픽셀은 파이프라인 어디에도 들어가지 않는다.
+    그 성질을 `tests/test_a43_one_class_o2.py` 가 **비트 단위로** 박는다 —
+    진입점 라벨 검사만으로는 픽셀이 안 샜다는 보장이 안 되기 때문이다.
+    """
+    y = np.asarray(y)
+    train_idx = np.asarray(train_idx)
+    sel = train_idx[y[train_idx] == 0]
+    assert_one_class(y[sel])
+    return sel
+
+
+def o2_scores(X, y, train_idx, test_idx, seed: int = 0, epochs: int = M.EPOCHS,
+              bank: int = M.BANK_SIZE, device: str = "cpu") -> np.ndarray:
+    """O2 파이프라인 전체를 한 함수로. **test 라벨은 쓰지 않는다.**
+
+    같은 시드에서 **같은 스레드 수로** 돌리면 비트 단위로 같다.
+    스레드 수가 다르면 역전파 축약 순서가 달라져 가중치가 갈린다(18차 사이클 실측,
+    1 epoch 에서 최대 4e-3). **재현을 주장할 때 스레드 수를 같이 적어야 한다.**
+    """
+    trn = select_train_none(y, train_idx)
+    torch.manual_seed(seed)
+    enc = M.PatchEncoder().to(device)
+    if epochs > 0:
+        train_encoder(enc, X, trn, seed, epochs, device)
+    enc.eval()
+    bk, _, _ = gather_bank(enc, X, trn, bank, seed, device)
+    s, _ = score_partition(enc, X, np.asarray(test_idx), bk, device)
+    return s
 
 
 # --- 지표 -------------------------------------------------------------------------
@@ -226,8 +269,7 @@ if __name__ == "__main__":
     y = d["y"].astype(np.int64)
     size = d["die_size"].astype(np.float64)
     X = d["X"]
-    trn = sp["train"][y[sp["train"]] == 0]
-    assert_one_class(y[trn])                 # 라벨 가드
+    trn = select_train_none(y, sp["train"])   # one-class 의 유일한 문
     assert_not_sealed(trn, "train-none")     # 봉인 가드
     dev = load_partition("test_dev")
     assert_not_sealed(dev, "test_dev")

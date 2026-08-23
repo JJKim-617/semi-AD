@@ -60,7 +60,7 @@ def patch_feats(enc, X, idx, per_wafer, seed, device="cpu"):
         f = encode_chunk(enc, xb, device)
         v = M.valid_window_mask(xb, M.RF)
         for i in range(len(b)):
-            sel = f[i][v[i]] if v[i].any() else f[i].reshape(-1, M.FEAT_DIM)
+            sel = f[i][v[i]] if v[i].any() else f[i].reshape(-1, f.shape[-1])
             if len(sel) > per_wafer:
                 sel = sel[rng.choice(len(sel), per_wafer, replace=False)]
             out.append(sel)
