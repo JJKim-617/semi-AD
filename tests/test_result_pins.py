@@ -340,3 +340,36 @@ def test_the_secondary_metric_improves_for_the_fourth_time():
     r = load("o2_seed_scaling/seed_scaling.json")
     assert r["fuse5_n"]["fpr_at_95tpr"] < r["fuse3"]["fpr_at_95tpr"]
     assert r["u_eval_fpr"]["hi"] < 0, "FPR@95TPR 은 유의하게 낫다"
+
+
+# --- 27차: 두 지표의 갈라짐 ---------------------------------------------------------
+
+def test_aupr_barely_sees_the_high_recall_region():
+    """**27차의 구조적 발견.** 이 수치가 바뀌면 지표 논의 전체를 다시 읽어야 한다."""
+    b = load("o1_metric_divergence/metric_divergence.json")["recall_bands"]["fuse3 (채택)"]
+    assert b["frac_95plus"] == pytest.approx(0.0109, abs=5e-4)
+    assert b["bands"]["0.95-1.00"] == pytest.approx(0.0091, abs=5e-4)
+    assert b["bands"]["0.00-0.50"] == pytest.approx(0.4937, abs=5e-4)
+    assert b["total"] == pytest.approx(0.8304, abs=5e-4), "합이 aupr_blocked 와 같아야 한다"
+
+
+def test_the_two_metrics_pick_different_tail_weights():
+    """같은 축에서 서로 다른 최적을 고른다는 것."""
+    r = load("o1_metric_divergence/metric_divergence.json")
+    assert r["q_best_aupr"] != r["q_best_fpr"]
+    assert r["q_best_aupr"] < r["q_best_fpr"], "FPR 쪽이 더 큰 꼬리 가중을 원한다"
+
+
+def test_the_divergence_is_not_universal():
+    """18개 중 12개는 두 지표가 일치한다 — 과장하지 않기 위한 못."""
+    r = load("o1_metric_divergence/metric_divergence.json")
+    assert len(r["diverged"]) == 2, r["diverged"]
+    assert set(r["diverged"]) == {"Tippett 최대", "fuse5 (16 seed)"}
+
+
+def test_switching_the_metric_would_promote_an_unoperable_arm():
+    """지표를 바꾸면 1위가 되는 Tippett 이 그 운영점에서 문턱을 못 고른다."""
+    d = load("o1_metric_divergence/metric_divergence.json")["arms"]["Tippett 최대"]
+    assert d["aupr_verdict"] == "짐" and d["fpr_verdict"] == "이김"
+    t = load("o1_tail/tail_metrics.json")["metrics"]["5 Tippett 최대 (이접)"]
+    assert t["operating"][2]["n_tied_at_threshold"] == 8776
