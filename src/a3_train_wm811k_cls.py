@@ -339,8 +339,9 @@ def main() -> None:
     p.add_argument("--ema-decay", type=float, default=0.0,
                    help="가중치 EMA 감쇠. 0 이면 끈다. 켜면 EMA 체크포인트를 따로 저장한다.")
     p.add_argument("--extra-augment", nargs="*", default=[],
-                   choices=["scale", "translate", "noise", "dropout"],
-                   help="a18 추가 증강. scale/translate 는 pad 표현 전용.")
+                   choices=["scale", "translate", "noise", "dropout", "rotate"],
+                   help="a18 추가 증강. scale/translate 는 pad 표현 전용. "
+                        "rotate 는 E23 의 자유 각도 회전(dihedral 의 연속 확장).")
     p.add_argument("--augment-mode", choices=["dihedral", "angular"], default="dihedral",
                    help="dihedral=카르테시안(pad, resize)용, angular=극좌표용. "
                         "표현과 어긋나면 학습이 망가진다.")

@@ -109,12 +109,61 @@ def die_dropout(x: np.ndarray, rng, rate: float = 0.02) -> np.ndarray:
     return out
 
 
+def random_rotate(x: np.ndarray, rng, max_deg: float = 180.0,
+                  angles: np.ndarray | None = None, chunk: int = 512) -> np.ndarray:
+    """웨이퍼를 자유 각도로 돌린다. 최근접 역사상이라 값이 보존된다.
+
+    **왜 dihedral 위에 이것을 얹는가.** dihedral(+0.101)이 이 프로젝트 최대 이득이었고
+    translate(+0.038)가 그 다음이다. 둘의 공통점은 **참된 대칭**이라는 것이다 —
+    캔버스 안 위치도, 90도 배수의 방향도 이 데이터셋에서 라벨과 무관하다.
+    그렇다면 **임의 각도도 무관**해야 한다. Edge-Loc, Loc, Scratch 의 방향은 임의이고
+    Center, Donut, Edge-Ring, Near-full 은 회전 불변이다.
+    dihedral 은 그 회전군의 원소 8개만 쓴다. 이것은 그 사이를 채운다.
+
+    **단 이산 다이 격자에서 자유 회전이 참된 대칭이라는 보장은 없다.**
+    최근접 재표본이 격자를 성기게 만들면 `die_dropout` 처럼 굴고,
+    그 증강은 이 프로젝트에서 누출을 2배로 늘렸다. 시험에 다이 보존 하한을 박아 뒀고
+    (`tests/test_a18_rotate.py`), 학습 전에 `diag_augment_label_violation.py` 로 선별한다.
+
+    `angles` 를 주면 그 각을 그대로 쓴다(시험과 결정론적 사용). 안 주면
+    `[-max_deg, max_deg]` 에서 **표본마다 독립으로** 뽑는다.
+    """
+    x = np.asarray(x)
+    n, H, W = x.shape
+    if angles is None:
+        if max_deg == 0:
+            return x.copy()
+        angles = rng.uniform(-max_deg, max_deg, size=n)
+    angles = np.asarray(angles, dtype=np.float64)
+    if len(angles) != n:
+        raise ValueError(f"각의 개수 {len(angles)} 가 표본 수 {n} 와 다르다")
+
+    cy, cx = (H - 1) / 2.0, (W - 1) / 2.0
+    rr = (np.arange(H, dtype=np.float64) - cy)[None, :, None]
+    cc = (np.arange(W, dtype=np.float64) - cx)[None, None, :]
+    out = np.zeros_like(x)
+    for i in range(0, n, chunk):
+        a = np.deg2rad(angles[i:i + chunk])[:, None, None]
+        ca, sa = np.cos(a), np.sin(a)
+        # theta=90 에서 np.rot90 과 정확히 일치하는 역사상이다.
+        sr = np.rint(cy + ca * rr + sa * cc).astype(np.int64)
+        sc = np.rint(cx - sa * rr + ca * cc).astype(np.int64)
+        ok = (sr >= 0) & (sr < H) & (sc >= 0) & (sc < W)
+        np.clip(sr, 0, H - 1, out=sr)
+        np.clip(sc, 0, W - 1, out=sc)
+        blk = x[i:i + chunk]
+        idx = np.arange(len(blk))[:, None, None]
+        out[i:i + chunk] = np.where(ok, blk[idx, sr, sc], 0)
+    return out
+
+
 # 학습에서 이름으로 고르기 위한 표. 값은 (함수, 기본 인자).
 RECIPES = {
     "scale": (random_scale, dict(lo=0.6, hi=1.4)),
     "translate": (random_translate, dict(max_shift=4)),
     "noise": (die_noise, dict(rate=0.01)),
     "dropout": (die_dropout, dict(rate=0.02)),
+    "rotate": (random_rotate, dict(max_deg=180.0)),
 }
 
 
