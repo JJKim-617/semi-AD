@@ -475,7 +475,7 @@ E22 9개는 같은 조리법(백본 3종 x seed 3)이다. 분해하니
 
 ### 진행 중
 
-- **E24 팔 B** ( + translate): 3 seed 진행 중. P4(translate 와 겹치는가)를 시험한다.
+- **E24 팔 B** (`reflect` + translate): 3 seed 진행 중. P4(translate 와 겹치는가)를 시험한다.
 
 ## 17차 사이클 요약 (2026-08-23)
 
