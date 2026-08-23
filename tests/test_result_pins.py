@@ -373,3 +373,40 @@ def test_switching_the_metric_would_promote_an_unoperable_arm():
     assert d["aupr_verdict"] == "짐" and d["fpr_verdict"] == "이김"
     t = load("o1_tail/tail_metrics.json")["metrics"]["5 Tippett 최대 (이접)"]
     assert t["operating"][2]["n_tied_at_threshold"] == 8776
+
+
+# --- 28차: 운영점이 arm 선택을 바꾼다 -------------------------------------------------
+
+def test_fuse3_leads_only_at_fifty_percent_recall():
+    """**28차의 핵심.** 이게 바뀌면 지표·arm 논의 전체를 다시 읽어야 한다."""
+    w = load("o1_operating_table/operating_table.json")["winners"]
+    assert w["0.50"]["winner"] == "fuse3 (채택)"
+    assert w["0.50"]["fuse3_rank_among_operable"] == 1
+    for t_ in ("0.80", "0.90", "0.95", "0.99"):
+        assert w[t_]["winner"] != "fuse3 (채택)", t_
+        assert w[t_]["fuse3_rank_among_operable"] > 1, t_
+    assert w["0.90"]["fuse3_rank_among_operable"] == 7
+
+
+def test_aupr_weight_is_concentrated_where_fuse3_wins():
+    """AUPR 의 59.45%가 0-50% 구간에서 오고, fuse3 는 그 구간에서만 1위다."""
+    b = load("o1_operating_table/operating_table.json")["aupr_bands"]["fuse3 (채택)"]
+    tot = sum(b.values())
+    assert b["0-50%"] / tot == pytest.approx(0.5945, abs=5e-4)
+    assert (b["90-95%"] + b["95-99%"] + b["99-100%"]) / tot == pytest.approx(0.0321, abs=5e-4)
+
+
+def test_the_tie_screen_is_not_monotone_in_the_operating_point():
+    """Tippett 은 90% 에서만 운영 가능하다. 한 번 재고 끝낼 수 없다는 근거."""
+    pts = load("o1_operating_table/operating_table.json")["points"]
+    tie = {k: pts[k]["Tippett 최대"]["tied"] for k in pts}
+    assert tie["0.90"] < 1000 < tie["0.80"], tie
+    assert tie["0.95"] > 1000 and tie["0.50"] > 1000
+    assert tie["0.90"] == 10
+
+
+def test_the_seed_averaged_arm_also_beats_fuse3_at_high_recall():
+    """1위가 seed 하나라는 약점을 우회하는 확인 — 앙상블로도 결론이 선다."""
+    pts = load("o1_operating_table/operating_table.json")["points"]
+    for t_ in ("0.90", "0.95"):
+        assert pts[t_]["fuse5 (3 seed)"]["fpr"] < pts[t_]["fuse3 (채택)"]["fpr"], t_
