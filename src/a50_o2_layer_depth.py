@@ -31,7 +31,8 @@ from a43_ood_ssl_eval import gather_bank, score_partition, train_encoder  # noqa
 from diag_o2_feature_collapse import effective_dim, patch_feats  # noqa: E402
 
 OUT = Path("result/ood/o2_ssl_knn")
-DEPTH_BLOCKS = {1: 3, 3: 9}      # nn.Sequential 안에서 각 깊이가 끝나는 위치(conv,BN,ReLU x n)
+# nn.Sequential 안에서 각 깊이가 끝나는 위치. 한 층 = conv + BN + ReLU 세 개다.
+DEPTH_BLOCKS = {d: 3 * d for d in (1, 2, 3)}
 T0 = time.time()
 
 
@@ -108,7 +109,7 @@ if __name__ == "__main__":
                 log("%-18s 차원 %2d  유효차원 %5.2f  AUPRblk %.4f  AUROC %.4f  거리평균 %.5f"
                     % (key, f.shape[1], ed, rep[key]["aupr_blocked"],
                        rep[key]["auroc"], rep[key]["knn_mean"]))
-                (OUT / "layer_depth.json").write_text(
+                (OUT / ("layer_depth_d%s.json" % a.depths.replace(",", ""))).write_text(
                     json.dumps(rep, ensure_ascii=False, indent=2))
 
     print("\n== 반증 조건 1: 붕괴 비율 (학습 유효차원 / 무작위 유효차원) ==")
@@ -127,5 +128,5 @@ if __name__ == "__main__":
     for k, v in rep.items():
         print("%-18s %10.2f %10.4f %10.4f %10.4f"
               % (k, v["eff_dim"], v["aupr_blocked"], v["auroc"], v["fpr_at_95tpr"]))
-    (OUT / "layer_depth.json").write_text(json.dumps(rep, ensure_ascii=False, indent=2))
+    (OUT / ("layer_depth_d%s.json" % a.depths.replace(",", ""))).write_text(json.dumps(rep, ensure_ascii=False, indent=2))
     log("저장 완료")
