@@ -56,7 +56,8 @@ def _softmax(z: np.ndarray) -> np.ndarray:
 def cache_tta_logits(ckpt: str, cache: str, splits: str, out_dir: str, tag: str,
                      scheme: str = "dihedral", n_angle: int = 8, flips: bool = True,
                      batch_size: int = 512, backbone: str = "resnet18",
-                    density_ks=(), density_shuffle_seed=None, line_ls=()) -> str:
+                    density_ks=(), density_shuffle_seed=None, line_ls=(),
+                    padding_mode: str = "zeros") -> str:
     """TTA 평균 확률을 로그로 되돌려 a6 와 같은 npz 형식으로 저장한다.
 
     확률을 평균한 뒤 log 를 취한다. 앙상블 도구가 로짓에 softmax 를 다시 걸어도
@@ -79,7 +80,8 @@ def cache_tta_logits(ckpt: str, cache: str, splits: str, out_dir: str, tag: str,
     X, y_all = d["X"], d["y"]          # npz 지연 로딩을 배치 루프 밖에서 한 번만
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model = build_model(num_classes=n_cls, pretrained=False, backbone=backbone,
-                        in_channels=3 + len(density_ks) + len(line_ls))
+                        in_channels=3 + len(density_ks) + len(line_ls),
+                        padding_mode=padding_mode)
     model.load_state_dict(torch.load(ckpt, map_location=device, weights_only=True))
     model.to(device).eval()
 
@@ -145,7 +147,8 @@ def main() -> None:
                          backbone=e.get("backbone", "resnet18"),
                          density_ks=tuple(e.get("density_ks", ())),
                          density_shuffle_seed=e.get("density_shuffle"),
-                         line_ls=tuple(e.get("line_ls", ())))
+                         line_ls=tuple(e.get("line_ls", ())),
+                         padding_mode=e.get("padding_mode", "zeros"))
 
         base = np.load(Path(a.out_dir) / f"{e['tag']}_logits.npz")
         tta = np.load(Path(a.out_dir) / f"{tta_tag}_logits.npz")

@@ -89,6 +89,9 @@ def main() -> None:
     p.add_argument("--tag", default=None)
     p.add_argument("--pretrained", action="store_true",
                    help="체크포인트를 만든 모델 구조와 맞추기 위한 플래그(가중치는 ckpt 로 덮인다)")
+    p.add_argument("--padding-mode", default="zeros",
+                   choices=["zeros", "reflect", "replicate", "circular"],
+                   help="E24. 학습 때와 반드시 같아야 한다 — 다르면 조용히 틀린다.")
     p.add_argument("--density-ks", nargs="*", type=int, default=[],
                    help="E20 국소 밀도 채널. 학습 때 쓴 것과 같아야 한다.")
     p.add_argument("--line-ls", nargs="*", type=int, default=[],
@@ -105,6 +108,7 @@ def main() -> None:
 
     dks, lls = tuple(a.density_ks), tuple(a.line_ls)
     model = build_model(num_classes=len(classes), pretrained=False,
+                        padding_mode=a.padding_mode,
                         backbone=a.backbone, in_channels=3 + len(dks) + len(lls))
     model.load_state_dict(torch.load(a.ckpt, map_location=device, weights_only=True))
     pred = predict(model, d["X"][idx], 512, device, line_ls=lls,

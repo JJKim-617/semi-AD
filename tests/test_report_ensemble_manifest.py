@@ -38,6 +38,18 @@ def test_e23_is_resnet18_and_records_its_recipe():
     assert entry_for_tag("e23_rottr_s0")["augment"] == "rotate+translate"
 
 
+def test_e24_entry_carries_the_padding_mode():
+    """`padding_mode` 가 빠지면 평가가 zeros 모델로 돌아가 **조용히 틀린다.**
+
+    가중치가 아니라서 `load_state_dict` 는 성공한다. 그래서 시험으로 박는다.
+    """
+    e = entry_for_tag("e24_pad_s0")
+    assert e["padding_mode"] == "reflect"
+    assert e["augment"] == ""
+    assert entry_for_tag("e24_padtr_s2")["padding_mode"] == "reflect"
+    assert entry_for_tag("e24_padtr_s2")["augment"] == "translate"
+
+
 def test_unknown_tag_is_refused_not_guessed():
     """모르는 태그를 resnet18 기본값으로 조용히 만들면 사고가 난다."""
     with pytest.raises(ValueError):

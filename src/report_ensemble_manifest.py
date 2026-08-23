@@ -22,6 +22,9 @@ CACHE_PAD = "data/wm811k/cache/wm811k_64pad.npz"
 # 아는 이름만 접두사로 맞춘다.
 BACKBONES = ["shufflenet_v2", "mobilenet_v3", "efficientnet_b0", "convnext_tiny"]
 E23_ARMS = {"rot": "rotate", "rottr": "rotate+translate"}
+# E24: reflect 패딩. `padding_mode` 를 항목에 반드시 실어야 한다 —
+# 빠지면 평가가 zeros 모델로 돌아가 **조용히 틀린다.**
+E24_ARMS = {"pad": ("reflect", ""), "padtr": ("reflect", "translate")}
 
 
 def entry_for_tag(tag: str) -> dict:
@@ -39,6 +42,13 @@ def entry_for_tag(tag: str) -> dict:
                 return {**base, "architecture": bb, "backbone": bb,
                         "augment": "translate"}
         raise ValueError(f"E22 태그에서 아는 백본을 못 찾았다: {tag}")
+    if tag.startswith("e24_"):
+        rest = tag[len("e24_"):]
+        for arm, (mode, aug) in E24_ARMS.items():
+            if rest.startswith(arm + "_s"):
+                return {**base, "architecture": "resnet18", "backbone": "resnet18",
+                        "padding_mode": mode, "augment": aug}
+        raise ValueError(f"E24 태그에서 아는 팔을 못 찾았다: {tag}")
     if tag.startswith("e23_"):
         rest = tag[len("e23_"):]
         for arm, recipe in E23_ARMS.items():
@@ -64,7 +74,7 @@ def merge_entries(existing: list, new_tags) -> list:
     return out
 
 
-def finished_tags(prefixes=("e22_", "e23_"), out_dir: str = OUT_DIR) -> list:
+def finished_tags(prefixes=("e22_", "e23_", "e24_"), out_dir: str = OUT_DIR) -> list:
     """**학습이 끝난** 실행만 고른다.
 
     `{tag}_best.pt` 는 val 이 좋아질 때마다 덮어써지므로 존재만으로는 부족하다.

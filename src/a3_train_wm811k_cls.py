@@ -97,8 +97,31 @@ def encode_device(x: np.ndarray, density_ks=(), device="cuda",
     return torch.cat(parts, dim=1)
 
 
+PADDING_MODES = ("zeros", "reflect", "replicate", "circular")
+
+
+def _apply_padding_mode(model: nn.Module, mode: str) -> nn.Module:
+    """패딩이 있는 모든 Conv2d 의 패딩 방식을 바꾼다 (E24).
+
+    **기본값 `zeros` 를 바꾸면 기존 체크포인트 42개의 결과를 되읽을 수 없다.**
+    그래서 플래그로만 연다. 가중치와 파라미터 수는 전혀 바뀌지 않는다 —
+    개입이 패딩 하나여야 교란이 없다.
+
+    한 층이라도 빠지면 개입이 새어 실험이 무의미해지므로 **모든 층을 훑는다.**
+    """
+    if mode not in PADDING_MODES:
+        raise ValueError(f"모르는 패딩 방식: {mode}. {PADDING_MODES} 중 하나여야 한다")
+    if mode == "zeros":
+        return model
+    for m in model.modules():
+        if isinstance(m, nn.Conv2d) and any(q > 0 for q in m.padding):
+            m.padding_mode = mode
+    return model
+
+
 def build_model(num_classes: int = 9, pretrained: bool = False,
-                backbone: str = "resnet18", in_channels: int = 3) -> nn.Module:
+                backbone: str = "resnet18", in_channels: int = 3,
+                padding_mode: str = "zeros") -> nn.Module:
     """저해상도용으로 stem 을 고친 분류기.
 
     기본은 ResNet-18 이다. 기존 체크포인트가 전부 그것이고 호출부 여섯 곳이
@@ -126,14 +149,15 @@ def build_model(num_classes: int = 9, pretrained: bool = False,
         from pathlib import Path
         sys.path.insert(0, str(Path(__file__).resolve().parent))
         from a19_backbones import build_backbone
-        return build_backbone(backbone, num_classes=num_classes)
+        return _apply_padding_mode(
+            build_backbone(backbone, num_classes=num_classes), padding_mode)
 
     weights = tvm.ResNet18_Weights.IMAGENET1K_V1 if pretrained else None
     m = tvm.resnet18(weights=weights)
     m.conv1 = nn.Conv2d(in_channels, 64, kernel_size=3, stride=1, padding=1, bias=False)
     m.maxpool = nn.Identity()
     m.fc = nn.Linear(m.fc.in_features, num_classes)
-    return m
+    return _apply_padding_mode(m, padding_mode)
 
 
 class FocalLoss(nn.Module):
@@ -364,6 +388,9 @@ def main() -> None:
                    help="자기지도 사전학습 인코더 가중치. fc 는 제외하고 싣는다.")
     p.add_argument("--snapshot-every", type=int, default=0,
                    help="N 에폭마다 체크포인트를 남긴다. 0 이면 저장하지 않는다.")
+    p.add_argument("--padding-mode", default="zeros", choices=list(PADDING_MODES),
+                   help="E24. 합성곱 패딩 방식. 기본 zeros 를 바꾸면 과거 체크포인트를 "
+                        "못 읽으므로 플래그로만 연다.")
     p.add_argument("--seed", type=int, default=0)
     a = p.parse_args()
 
@@ -393,7 +420,8 @@ def main() -> None:
               + (f"  (셔플 대조군 seed={a.density_shuffle})"
                  if a.density_shuffle is not None else ""))
     model = build_model(num_classes=len(classes), pretrained=a.pretrained,
-                        backbone=a.backbone, in_channels=in_ch)
+                        backbone=a.backbone, in_channels=in_ch,
+                        padding_mode=a.padding_mode)
     if a.init_encoder:
         sd = torch.load(a.init_encoder, map_location="cpu", weights_only=True)
         missing, unexpected = model.load_state_dict(sd, strict=False)

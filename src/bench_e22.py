@@ -160,6 +160,72 @@ def main():
         print("  실제 %.4f  ->  **H2 %s**" % (
             cross.mean(), "통과" if cross.mean() < H2_LINE else "기각"))
 
+    # 17차의 머릿수(백본 0.6238 대 seed 0.8285)는 **오류 개수 ±400 필터**로 품질을
+    # 맞췄다고 했다. 그런데 그 필터는 넓다 — 오류 3,300개 근처에서 400 은 12% 다.
+    # E22 는 백본을 바꾸면서 품질까지 translate 수준으로 올린 첫 표본이므로,
+    # **품질이 같아졌을 때도 백본이 다양성을 만드는지**를 여기서 처음 가를 수 있다.
+    print("\n== 교란 점검 — 오류 상관이 품질에 얼마나 끌려가나 ==")
+    allt = [t for t in P if single[t] > 0.70]
+    pr = []
+    for a_, b_ in itertools.combinations(allt, 2):
+        pr.append((0.5 * (single[a_] + single[b_]), errcorr(a_, b_),
+                   abs(int(err[a_].sum()) - int(err[b_].sum()))))
+    if len(pr) > 10:
+        q = np.array(pr)
+        print("  짝 %d개. corr(짝 평균 macro-F1, 오류 상관) = %+.3f" % (
+            len(q), float(np.corrcoef(q[:, 0], q[:, 1])[0, 1])))
+        print("  (±400 필터를 통과한 짝만 보면 %+.3f)" % (
+            float(np.corrcoef(q[q[:, 2] <= 400][:, 0], q[q[:, 2] <= 400][:, 1])[0, 1])
+            if (q[:, 2] <= 400).sum() > 5 else float("nan")))
+        edges = np.quantile(q[:, 0], [0, 1 / 3, 2 / 3, 1.0])
+        print("  %-22s %5s %10s" % ("짝 평균 품질", "n", "오류 상관"))
+        for i in range(3):
+            m = (q[:, 0] >= edges[i]) & (q[:, 0] <= edges[i + 1])
+            print("  %.4f ~ %.4f      %5d %10.4f" % (
+                edges[i], edges[i + 1], m.sum(), q[m, 1].mean()))
+        print("  **품질이 오르면 오류 상관도 오른다면, 17차의 0.6238 은 백본이 아니라")
+        print("    백본 모델이 약했던 것을 잰 값이다.** E22 가 그것을 가른다.")
+
+        # 옳은 처리는 필터가 아니라 **회귀**다. 오류 상관을 짝 평균 품질로 회귀한 뒤
+        # 잔차를 짝 종류별로 비교한다. 잔차가 음수면 "품질이 설명하는 것보다 더 다양하다".
+        def arch_of(t):
+            if t.startswith("e22_"):
+                return t.split("_tr_")[0][len("e22_"):]
+            if t.startswith("e18_"):
+                return t[len("e18_"):].rsplit("_s", 1)[0]
+            return "resnet18"
+
+        def aug_of(t):
+            return "translate" if (t.startswith("e17_translate")
+                                   or t.startswith("e22_")) else "none"
+
+        def kind(a_, b_):
+            # 17차의 구분을 그대로 재현한다: seed 만 다른 짝 / 백본이 다른 짝.
+            if arch_of(a_) != arch_of(b_):
+                return "백본이 다름"
+            return "seed 만 다름" if aug_of(a_) == aug_of(b_) else "증강만 다름"
+
+        names, qual, ec = [], [], []
+        for a_, b_ in itertools.combinations(allt, 2):
+            names.append(kind(a_, b_))
+            qual.append(0.5 * (single[a_] + single[b_]))
+            ec.append(errcorr(a_, b_))
+        qual, ec = np.array(qual), np.array(ec)
+        fit = np.polyfit(qual, ec, 1)
+        resid = ec - np.polyval(fit, qual)
+        print("\n  품질로 회귀한 뒤의 잔차 (음수 = 품질이 설명하는 것보다 더 다양하다)")
+        print("  %-14s %5s %12s %12s" % ("짝 종류", "n", "오류 상관", "잔차"))
+        for k in ("seed 만 다름", "증강만 다름", "백본이 다름"):
+            m = np.array([n == k for n in names])
+            if m.sum():
+                print("  %-14s %5d %12.4f %+12.4f" % (
+                    k, m.sum(), ec[m].mean(), resid[m].mean()))
+        gap = (np.array([n == "백본이 다름" for n in names]),
+               np.array([n == "seed 만 다름" for n in names]))
+        if gap[0].sum() and gap[1].sum():
+            print("  품질 통제 후 백본 효과 = %+.4f  (17차가 보고한 날것 차이는 -0.2047)" % (
+                resid[gap[0]].mean() - resid[gap[1]].mean()))
+
     print("\n== H3 — **판정 기준**. 품질을 맞춘 풀에서 leave-one-out (k=2~4) ==")
     POOL = CTRL + e22
     print("  풀 %d개 = translate 대조군 %d + E22 %d" % (len(POOL), len(CTRL), len(e22)))

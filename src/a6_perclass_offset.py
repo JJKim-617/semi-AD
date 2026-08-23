@@ -64,7 +64,8 @@ def optimize_offsets(logits: np.ndarray, y: np.ndarray, num_classes: int,
 
 def cache_logits(ckpt: str, cache: str, splits: str, out_dir: str, tag: str,
                  backbone: str = "resnet18", density_ks=(),
-                 density_shuffle_seed=None, line_ls=(), batch: int = 512) -> str:
+                 density_shuffle_seed=None, line_ls=(), batch: int = 512,
+                 padding_mode: str = "zeros") -> str:
     """체크포인트의 val, test logit 을 한 번 계산해 저장한다. 이후 탐색은 이 파일만 쓴다."""
     import sys
     from pathlib import Path
@@ -85,7 +86,8 @@ def cache_logits(ckpt: str, cache: str, splits: str, out_dir: str, tag: str,
     X, y_all = d["X"], d["y"]
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model = build_model(num_classes=n_cls, pretrained=False, backbone=backbone,
-                        in_channels=3 + len(density_ks) + len(line_ls))
+                        in_channels=3 + len(density_ks) + len(line_ls),
+                        padding_mode=padding_mode)
     model.load_state_dict(torch.load(ckpt, map_location=device, weights_only=True))
     model.to(device).eval()
 

@@ -57,7 +57,7 @@ def main():
     import torch  # noqa: E402
 
     from a3_train_wm811k_cls import build_model, encode_device  # noqa: E402
-    from a18_augment import die_noise, random_translate  # noqa: E402
+    from a18_augment import die_noise, random_rotate, random_translate  # noqa: E402
 
     p = argparse.ArgumentParser()
     p.add_argument("--manifest", default="docs/experiments/ensemble_members.json")
@@ -85,6 +85,8 @@ def main():
     x0 = X[idx]
     xt = random_translate(x0, rng=np.random.default_rng(a.seed + 1), max_shift=4)
     xn = die_noise(x0, rng=np.random.default_rng(a.seed + 1), rate=0.01)
+    # E23 용. 회전 학습이 회전 민감도만 줄이는지 이동 민감도까지 줄이는지 가른다.
+    xr = random_rotate(x0, rng=np.random.default_rng(a.seed + 1), max_deg=180.0)
     print(f"none 표본 {len(x0):,}장, 모델 {len(entries)}개")
 
     def probs(model, xb):
@@ -109,10 +111,12 @@ def main():
         rows[e["tag"]] = dict(
             shift=mean_total_variation(p0, probs(m, xt)),
             noise=mean_total_variation(p0, probs(m, xn)),
+            rot=mean_total_variation(p0, probs(m, xr)),
             augment=e.get("augment", ""), backbone=e.get("backbone", "resnet18"))
         del m
         torch.cuda.empty_cache()
         print(f"  {e['tag']:<30} 이동 {rows[e['tag']]['shift']:.4f} "
+              f"회전 {rows[e['tag']]['rot']:.4f} "
               f"잡음 {rows[e['tag']]['noise']:.4f}", flush=True)
 
     # 누출은 캐시된 로짓에서 읽는다(같은 모델, 전체 test).
@@ -150,13 +154,16 @@ def main():
         g = rows[t]["augment"] or ("백본" if rows[t]["backbone"] != "resnet18"
                                    else "무증강 resnet18")
         groups.setdefault(g, []).append(t)
-    print(f"  {'군':<22}{'n':>3}{'이동':>9}{'잡음':>9}{'이동/잡음':>11}{'누출':>9}")
+    print(f"  {'군':<22}{'n':>3}{'이동':>9}{'회전':>9}{'잡음':>9}"
+          f"{'이동/잡음':>11}{'누출':>9}")
     for g, tags in sorted(groups.items(), key=lambda kv: -np.mean(
             [rows[t]["shift"] for t in kv[1]])):
         s = np.mean([rows[t]["shift"] for t in tags])
+        r = np.mean([rows[t].get("rot", np.nan) for t in tags])
         n = np.mean([rows[t]["noise"] for t in tags])
         L = np.mean([leak[t] for t in tags])
-        print(f"  {g:<22}{len(tags):>3}{s:>9.4f}{n:>9.4f}{s / n:>11.2f}{L:>9,.0f}")
+        print(f"  {g:<22}{len(tags):>3}{s:>9.4f}{r:>9.4f}{n:>9.4f}"
+              f"{s / n:>11.2f}{L:>9,.0f}")
 
     Path(a.out).write_text(json.dumps(dict(rows=rows, leak=leak),
                                       ensure_ascii=False, indent=2))
