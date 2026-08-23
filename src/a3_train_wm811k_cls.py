@@ -291,11 +291,23 @@ def _batches(n: int, batch_size: int, shuffle: bool, rng=None):
 def train_one_epoch(model, X, y, optimizer, batch_size=256, device="cuda",
                     weight=None, augment=False, extra_augment=(), rng=None, criterion=None,
                     grad_clip=None, ema=None, density_ks=(), density_shuffle_seed=None,
-                    line_ls=()) -> float:
+                    line_ls=(), unlabeled=None, mu: int = 3, tau: float = 0.95,
+                    lambda_u: float = 1.0) -> float:
     """한 에폭 학습하고 평균 손실을 반환한다.
 
     criterion 을 주면 그것을 쓰고, 없으면 weight 를 반영한 CrossEntropy 를 쓴다.
     grad_clip 을 주면 그 노름으로 gradient 를 자른다.
+
+    `unlabeled` 를 주면 **E25 준지도(FixMatch 식 일관성)** 항을 더한다.
+    약한 판(dihedral)의 예측이 `tau` 를 넘으면 그것을 의사 라벨로 삼아
+    강한 판(dihedral + translate)에 교차엔트로피를 건다.
+    라벨 1개당 미라벨 `mu` 개를 본다.
+
+    **`unlabeled=None` 이면 이 함수는 예전과 완전히 같다.** 기존 체크포인트 42개의
+    재현이 걸려 있으므로 시험으로 박아 뒀다(`tests/test_a3_semisup_wiring.py`).
+
+    반환하는 평균 손실은 **라벨 손실만** 센다 — 일관성 항은 규모가 다르고
+    에폭마다 통과 표본 수가 달라져서, 섞으면 학습 추이를 읽을 수 없다.
     """
     model.to(device).train()
     rng = rng or np.random.default_rng(0)
@@ -313,13 +325,35 @@ def train_one_epoch(model, X, y, optimizer, batch_size=256, device="cuda",
         tgt = torch.as_tensor(y[b], dtype=torch.long, device=device)
         optimizer.zero_grad(set_to_none=True)
         loss = crit(model(inp), tgt)
+        loss_l = loss
+        if unlabeled is not None and len(unlabeled) and mu > 0:
+            import sys as _sys
+            from pathlib import Path as _Path
+            _sys.path.insert(0, str(_Path(__file__).resolve().parent))
+            from a26_semisup import consistency_loss, pseudo_labels
+
+            k = min(len(b) * mu, len(unlabeled))
+            ui = np.sort(rng.choice(len(unlabeled), k, replace=False))
+            xu = unlabeled[ui]
+            # 약한 판 = dihedral 만. 강한 판 = 그 위에 translate.
+            # **이 데이터에서 라벨을 보존하는 변환이 그 둘뿐**이라 강한 판이
+            # 약한 판보다 아주 조금만 강하다 — 사전 등록에 적어 둔 구조적 약점이다.
+            xw = augment_batch(xu, "dihedral", rng, extra=())
+            xs = augment_batch(xw, "none", rng, extra=("translate",))
+            iw = encode_device(xw, density_ks, device, density_shuffle_seed, line_ls)
+            with torch.no_grad():
+                pw = torch.softmax(model(iw).float(), 1)
+            lab, mask = pseudo_labels(pw, tau)
+            if bool(mask.any()):
+                is_ = encode_device(xs, density_ks, device, density_shuffle_seed, line_ls)
+                loss = loss + lambda_u * consistency_loss(model(is_), lab, mask)
         loss.backward()
         if grad_clip is not None:
             nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
         optimizer.step()
         if ema is not None:
             ema.update(model)
-        total += loss.item() * len(b)
+        total += loss_l.item() * len(b)      # 라벨 손실만 센다 (위 docstring)
         seen += len(b)
     return total / seen
 
@@ -388,6 +422,17 @@ def main() -> None:
                    help="자기지도 사전학습 인코더 가중치. fc 는 제외하고 싣는다.")
     p.add_argument("--snapshot-every", type=int, default=0,
                    help="N 에폭마다 체크포인트를 남긴다. 0 이면 저장하지 않는다.")
+    p.add_argument("--unlabeled-cache", default=None,
+                   help="E25 준지도. 미라벨이 섞인 캐시(예: wm811k_64pad_all.npz). "
+                        "y < 0 인 행만 미라벨로 쓴다. 안 주면 기존과 완전히 동일하다.")
+    p.add_argument("--mu", type=int, default=3,
+                   help="E25. 라벨 1개당 미라벨 개수. batch 128 에서 mu=3 이 "
+                        "24GB 상한이다(mu=7, batch 256 은 OOM).")
+    p.add_argument("--tau", type=float, default=0.95,
+                   help="E25. 의사 라벨 신뢰 임계값. 문헌 관례값 하나로 고정한다 — "
+                        "여러 값을 시험해 고르는 것은 하이퍼파라미터 조정이다.")
+    p.add_argument("--lambda-u", type=float, default=1.0,
+                   help="E25. 일관성 항의 가중치.")
     p.add_argument("--padding-mode", default="zeros", choices=list(PADDING_MODES),
                    help="E24. 합성곱 패딩 방식. 기본 zeros 를 바꾸면 과거 체크포인트를 "
                         "못 읽으므로 플래그로만 연다.")
@@ -429,6 +474,21 @@ def main() -> None:
         if bad:
             raise RuntimeError(f"사전학습 인코더에 없는 키가 fc 외에 있다: {bad[:5]}")
         print(f"[init] {a.init_encoder} 적재 (fc 는 새로 초기화)")
+    unlabeled = None
+    if a.unlabeled_cache:
+        du = np.load(a.unlabeled_cache)
+        yu = du["y"].astype(np.int64)
+        sel = np.where(yu < 0)[0]
+        if not len(sel):
+            raise ValueError(f"{a.unlabeled_cache} 에 미라벨(y<0)이 없다")
+        unlabeled = du["X"][sel]
+        if unlabeled.shape[1:] != X.shape[1:]:
+            raise ValueError(
+                f"미라벨 표현이 라벨과 다르다: {unlabeled.shape[1:]} 대 {X.shape[1:]}")
+        print(f"[semisup] 미라벨 {len(unlabeled):,}장 (라벨 학습의 "
+              f"{len(unlabeled)/len(tr):.1f}배)  mu={a.mu} tau={a.tau} "
+              f"lambda_u={a.lambda_u}")
+
     opt = torch.optim.Adam(model.parameters(), lr=a.lr)
     w = class_weights(y[tr], len(classes)) if a.class_weight else None
     criterion = FocalLoss(gamma=a.gamma, alpha=w) if a.loss == "focal" else None
@@ -459,7 +519,8 @@ def main() -> None:
                                extra_augment=tuple(a.extra_augment), rng=rng,
                                criterion=criterion, grad_clip=a.grad_clip, ema=ema,
                                density_ks=dks, density_shuffle_seed=a.density_shuffle,
-                               line_ls=lls)
+                               line_ls=lls, unlabeled=unlabeled, mu=a.mu, tau=a.tau,
+                               lambda_u=a.lambda_u)
         m = evaluate(y[va], predict(model, X[va], a.batch_size * 2, device,
                                     density_ks=dks, line_ls=lls,
                                     density_shuffle_seed=a.density_shuffle), len(classes))
