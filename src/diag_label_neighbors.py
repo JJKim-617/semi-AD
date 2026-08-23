@@ -51,6 +51,23 @@ def hamming_topk(A: np.ndarray, B: np.ndarray, k: int, device: str = "cuda",
     return out_d, out_i
 
 
+def euclid_topk(A: np.ndarray, B: np.ndarray, k: int, device: str = "cuda",
+                chunk: int = 512):
+    """표준화된 기술자 공간에서의 유클리드 최근접 k개."""
+    import torch
+    Bt = torch.from_numpy(B).float().to(device)
+    bn = (Bt ** 2).sum(1)
+    out_d = np.empty((len(A), k), np.float32)
+    out_i = np.empty((len(A), k), np.int64)
+    for i in range(0, len(A), chunk):
+        At = torch.from_numpy(A[i:i + chunk]).float().to(device)
+        d2 = (At ** 2).sum(1, keepdim=True) + bn[None] - 2 * At @ Bt.T
+        v, idx = torch.topk(d2.clamp_min(0), k, dim=1, largest=False)
+        out_d[i:i + At.shape[0]] = v.sqrt().cpu().numpy()
+        out_i[i:i + At.shape[0]] = idx.cpu().numpy()
+    return out_d, out_i
+
+
 def main():
     import argparse
     import glob
@@ -69,6 +86,9 @@ def main():
     p.add_argument("--k", type=int, default=10)
     p.add_argument("--n-control", type=int, default=3000)
     p.add_argument("--out", default="result/cls_baseline/e24_label_neighbors.json")
+    p.add_argument("--descriptor", default=None,
+                   help="a25 기술자 npz. 주면 해밍 대신 이것으로 이웃을 찾는다. "
+                        "위치/크기/회전에 불변이라 불량 개수 교란이 줄어든다.")
     a = p.parse_args()
 
     d = np.load(a.cache)
@@ -94,12 +114,26 @@ def main():
     print(f"새는 none {len(leaked):,}장, 대조군(안 새는 none) {len(kept):,}장, "
           f"학습 {len(tr):,}장")
 
-    Xtr = X[tr].reshape(len(tr), -1)
     ytr = y[tr]
+    if a.descriptor:
+        z = np.load(a.descriptor)["desc"].astype(np.float64)
+        # 차원마다 규모가 달라 표준화하지 않으면 한 축이 거리를 지배한다.
+        mu, sd = z.mean(0), z.std(0) + 1e-8
+        z = (z - mu) / sd
+        Xtr = z[tr]
+        Xte_all = z
+        print(f"기술자 거리 사용 ({z.shape[1]}차원, 표준화)")
+    else:
+        Xtr = X[tr].reshape(len(tr), -1)
+        Xte_all = None
+
+    def neighbors(idx_test, k):
+        if Xte_all is not None:
+            return euclid_topk(Xte_all[te[idx_test]], Xtr, k)
+        return hamming_topk(X[te[idx_test]].reshape(len(idx_test), -1), Xtr, k)
 
     def profile(idx_test, name):
-        A = X[te[idx_test]].reshape(len(idx_test), -1)
-        dist, nb = hamming_topk(A, Xtr, a.k)
+        dist, nb = neighbors(idx_test, a.k)
         lab = ytr[nb]                                   # (n, k)
         defect_frac = (lab != 0).mean(1)
         print(f"\n## {name} ({len(idx_test):,}장)")
@@ -113,7 +147,12 @@ def main():
         print(f"  **최근접 1개가 결함 라벨인 비율: {top1_def:.1%}**")
         # 거리가 멀면 이웃 논증이 약하다. 거리 구간별로 나눠 본다.
         print(f"  {'최근접 거리':<14}{'장수':>7}{'최근접이 결함':>14}")
-        buckets = [(0, 50), (50, 100), (100, 150), (150, 250), (250, 10 ** 9)]
+        if Xte_all is not None:   # 기술자 거리는 척도가 다르므로 분위수로 나눈다
+            q = np.quantile(dist[:, 0], [0, 0.2, 0.4, 0.6, 0.8, 1.0])
+            q[-1] += 1e-6
+            buckets = [(q[i], q[i + 1]) for i in range(5)]
+        else:
+            buckets = [(0, 50), (50, 100), (100, 150), (150, 250), (250, 10 ** 9)]
         by_dist = {}
         for lo, hi in buckets:
             m = (dist[:, 0] >= lo) & (dist[:, 0] < hi)
@@ -122,8 +161,10 @@ def main():
             v = float((lab[m, 0] != 0).mean())
             by_dist[f"{lo}-{hi if hi < 10 ** 9 else 'inf'}"] = dict(
                 n=int(m.sum()), top1_defect=v)
-            print(f"  {str(lo) + '~' + (str(hi) if hi < 10 ** 9 else '') :<14}"
-                  f"{int(m.sum()):>7}{v:>14.1%}")
+            lab_lo = f"{lo:.2f}" if Xte_all is not None else str(int(lo))
+            lab_hi = ("" if hi >= 10 ** 9 else
+                      (f"{hi:.2f}" if Xte_all is not None else str(int(hi))))
+            print(f"  {lab_lo + '~' + lab_hi:<14}{int(m.sum()):>7}{v:>14.1%}")
         return dict(n=len(idx_test), d1_median=float(np.median(dist[:, 0])),
                     d1_mean=float(dist[:, 0].mean()),
                     defect_frac_mean=float(defect_frac.mean()),
@@ -140,8 +181,7 @@ def main():
     print("\n## 교란 점검 — 불량 다이 개수를 맞추면 남는가")
     nf_all = (X[te] == 2).reshape(len(te), -1).sum(1)
     def top1(idx_test):
-        A = X[te[idx_test]].reshape(len(idx_test), -1)
-        dist, nb = hamming_topk(A, Xtr, 1)
+        dist, nb = neighbors(idx_test, 1)
         return (ytr[nb][:, 0] != 0).astype(float), dist[:, 0]
     lk_v, lk_d = top1(leaked)
     kp_v, kp_d = top1(kept)
@@ -178,13 +218,18 @@ def main():
           f"({r_keep['top1_defect'] / base:.2f}배)")
     print(f"  차이 {r_leak['top1_defect'] - r_keep['top1_defect']:+.1%}p")
     print("\n  **해석의 한계를 먼저 적는다.**")
-    print(f"  최근접 이웃까지 거리가 중앙값 {r_leak['d1_median']:.0f}칸이다. "
-          "다이 칸이 보통 600~1,500개이므로")
-    print("  '가장 가까운 이웃' 이라도 다이의 10~25% 가 다르다. "
-          "**같은 웨이퍼의 이웃이 아니다.**")
-    print("  그리고 이웃의 라벨이 곧 정답은 아니다. "
-          "이 표는 '애매하다' 를 증명하지 못하고,")
-    print("  **'새는 웨이퍼가 결함 라벨이 밀집한 자리에 앉아 있다' 까지만 말한다.**")
+    if Xte_all is not None:
+        print(f"  기술자 공간의 최근접 거리 중앙값 {r_leak['d1_median']:.2f} "
+              f"(표준화 {Xtr.shape[1]}차원. 무작위 짝은 약 {np.sqrt(2 * Xtr.shape[1]):.1f})")
+        print("  이웃이 무작위보다 훨씬 가깝다. 다만 **이웃의 라벨이 정답은 아니다.**")
+    else:
+        print(f"  최근접 이웃까지 거리가 중앙값 {r_leak['d1_median']:.0f}칸이다. "
+              "다이 칸이 보통 600~1,500개이므로")
+        print("  '가장 가까운 이웃' 이라도 다이의 10~25% 가 다르다. "
+              "**같은 웨이퍼의 이웃이 아니다.**")
+    if r_leak["top1_defect"] < 0.5:
+        print("  **새는 웨이퍼의 최근접 이웃도 과반이 none 라벨이다** — "
+              "라벨 애매성으로 설명하기 어렵다.")
 
     Path(a.out).write_text(json.dumps(
         dict(leaked=r_leak, kept=r_keep, stratified=strat),
